@@ -27,10 +27,13 @@ def strip_string( val ):
   return val.strip()
 
 def read_date_MMDDYYYY( val ):
-  day = int( val[2:4] )
-  month = int( val[0:2] )
-  year = int( val[4:8] )
-  return datetime.date( year, month, day )
+  if val == "        ":
+    return None
+  else:
+    day = int( val[2:4] )
+    month = int( val[0:2] )
+    year = int( val[4:8] )
+    return datetime.date( year, month, day )
 
 class Hy3FieldDescriptor:
   def __init__( self, name, first, last, parse_function = strip_string ):
@@ -56,6 +59,11 @@ Hy3FieldDescriptor( "end_date", 100, 107, read_date_MMDDYYYY ),
 Hy3FieldDescriptor( "age_up_date", 108, 115, read_date_MMDDYYYY ),
 )
 
+# Meet information
+line_code_fields[ 'B2' ] = (
+Hy3FieldDescriptor( "course_code", 98, 98 ),
+)
+
 # Swimmer information
 line_code_fields[ 'D1' ] = (
 Hy3FieldDescriptor( "gender", 2, 2 ),
@@ -70,7 +78,7 @@ Hy3FieldDescriptor( "date_of_birth", 88, 95, read_date_MMDDYYYY )
 line_code_fields[ 'E1' ] = (
 Hy3FieldDescriptor( "gender", 2, 2 ),
 Hy3FieldDescriptor( "swimmer_id", 3, 7, int ),
-Hy3FieldDescriptor( "distance", 17, 20 ),
+Hy3FieldDescriptor( "distance", 17, 20, int ),
 Hy3FieldDescriptor( "stroke", 21, 21 )
 )
 
@@ -79,7 +87,8 @@ line_code_fields[ 'E2' ] = (
 Hy3FieldDescriptor( "type", 2, 2 ),
 Hy3FieldDescriptor( "time", 3, 10, float ),
 Hy3FieldDescriptor( "length_unit", 11, 11 ),
-Hy3FieldDescriptor( "time_code", 12, 14 )
+Hy3FieldDescriptor( "time_code", 12, 14 ),
+Hy3FieldDescriptor( "date", 102, 109, read_date_MMDDYYYY )
 )
 
 # Empty class to contain parsed attributes

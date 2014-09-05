@@ -22,10 +22,18 @@
 
 import hytek_hy3_parser
 import hytek_helpers
+from race_time import RaceTime
 
+# Open a sample HY3 file and parse the lines
 f = open('C:\Users\Oli\Documents\TimeTrialResults_11_5_2013.HY3', 'r')
 parsed_lines = hytek_hy3_parser.parse( f )
 f.close()
-# for line in parsed_lines:
-  # print line.__dict__
-swimmers_by_hytek_id = hytek_helpers.parse_results( parsed_lines )
+# Now take those parsed lines and parse them as race results to get
+# a list of swimmers, each with a list of race results
+swimmers = hytek_helpers.parse_results( parsed_lines )
+
+# Print them out to show it works....
+for swimmer in swimmers:
+  print( "Swimmer: " + swimmer.first_name + " " + swimmer.last_name + ", DoB: " + str( swimmer.date_of_birth ) )
+  for swim in swimmer.swims:
+    print( "Meet: " + swim.meet + ", Date: " + str( swim.date ) + ", Event: " + str( swim.event ) + ", Time: " + str( RaceTime( swim.race_time ) ) )
