@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+<script type="text/javascript" src="events.js"></script>
+</head>
+
+<!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<body>
+	<nav>
+	  <a href="index.html">Home</a>
+	  <a href="personal_bests.html">Personal Bests</a>
+	  <a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
+	  <a href="club_records.html">Club Records</a>
+	  <a href="admin.html">Admin</a>
+	</nav>
+	<h1>Winsford Swimming Club</h1>
+	<article>
+		<h2>Unofficial Experimental Site</h2>
+		<p>This site is being developed by Oli Wright (Ethan's dad).</p>
+		<p>It's a small nerdy project I've been working on as a way to teach myself about web technologies.</p>
+		<p>All the information that I use in this site is publicly available on the <a href="https://www.swimmingresults.org/">ASA website</a>. But it can be a bit unfriendly and slow and not particularly phone-friendly.</p>
+		<p>This site uses Google servers to 'scrape' data about Winsford swimmers from the ASA website. It then presents this data in what I hope is a more friendly and useful manner. Take a look at the <a href="personal_bests.html">Personal Bests</a> page.</p>
+	</article>
+	<article>
+		<h2>My ToDo list</h2>
+		<p>Here's my list of things that this site doesn't currently do, that I'd like it to be able to do.</p>
+		<ul>
+			<li>Add a page for each swimmer, showing their progression over time. With graphs.</li>
+			<li>Make the PBs page 'linkable'. Currently if you set up a selection of swimmers, that selection is stored on your device in what's called HTML5 local storage. Which is all well and good unless you want to save a selection and then retrieve it later. I need to add the ability to optionally put the swimmers into the URL instead of using local storage, then you can send links with swimmer selections in them.</li>
+			<li>Fix the display of splits for longer IM races. Often the split times on the ASA site are nonsense (missing splits, or wrongly labelled distances), so I try to figure out what really happened. Most of the time what I've got works fine, but in some longer IM races it can get confused.</li>
+			<li>Add galas. This will include all qualifying times for all age groups so you'll be able to very easily see who qualifies for what.</li>
+			<li>Add ability to import data from Hy-Tek systems. I don't know anything about this yet, other than lots of our time-trial data is on this system and is not published to the ASA.</li>
+			<li>Add club records. Once we've got all our time-trial data in, then it should be perfectly possible to automatically generate club records.</li>
+		</ul>
+	</article>
+	<article>
+		<h2>What's New</h2>
+		<h3>31/8/2014</h3>
+		<ul>
+			<li>Added a page for each swimmer, showing their PBs including venue and date. Click on a swimmer's name to go to their page.</li>
+			<li>Added swimmer name (with link) to swim details page.</li>
+			<li>Started to tidy up some JavaScript, now that I know that some people are starting to take a closer look. Hello Ben. :-)</li>
+		</ul>
+	</article>
+</body>
+
+</html>

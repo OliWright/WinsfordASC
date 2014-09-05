@@ -1,0 +1,402 @@
+$page_background_colour : #D58207;
+$outer_panel_background_colour : #555;
+$panel_background_colour : white;
+$alternate_panel_background_colour : #FCE7CC;
+$border_colour : #aaa;
+
+$swimmer_list_content_width : 120px;
+$swimmer_list_margin : 4px;
+$swimmer_list_padding : 4px;
+$swimmer_list_border : 2px;
+
+$radius : 2px;
+$panel_shadow : 20px;
+$panel_shadow_colour : #555;
+
+// $swimmer_list_width : $swimmer_list_content_width + (($swimmer_list_margin + $swimmer_list_border + $swimmer_list_padding) * 2);
+
+html
+{
+	// Pasted from http://www.colorzilla.com/gradient-editor/
+	background: #c45b00; /* Old browsers */
+	background: -moz-linear-gradient(top,  #c45b00 0%, #e09704 33%, #ffffff 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#c45b00), color-stop(33%,#e09704), color-stop(100%,#ffffff)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #c45b00 0%,#e09704 33%,#ffffff 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #c45b00 0%,#e09704 33%,#ffffff 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #c45b00 0%,#e09704 33%,#ffffff 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #c45b00 0%,#e09704 33%,#ffffff 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#c45b00', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+
+	background-repeat: no-repeat;
+	height:100%;
+}
+
+body
+{
+	//font-family: Verdana, Helvetica, sans-serif;
+	font-family: 'Open Sans', sans-serif;
+	font-size:100%;
+	padding: 0.5em;
+}
+
+h1
+{
+	//font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+	font-size: 6em;
+	color: white;
+	text-shadow: 0 0 20px white;
+	text-align: center;
+	line-height: 90%;
+	margin-top: 0em;
+	margin-bottom: 0.3em;
+}
+
+h2
+{
+	//font-size: 6em;
+	color: #2B1B0C;
+	text-shadow: 1px 1px 6px #999;
+	//text-align: center;
+	//line-height: 90%;
+	margin-top: 0;
+	margin-bottom: 0.4em;
+}
+
+nav
+{
+	//background-color: $alternate_panel_background_colour;
+	// Pasted from http://www.colorzilla.com/gradient-editor/
+	background: #FFF; /* Old browsers */
+	background: linear-gradient(to bottom, #FFF 0%, #F8F0E5 100%);
+
+	background-repeat: no-repeat;
+	
+	
+	margin-left: 8px;
+	margin-right: 8px;
+	margin-top: 0px;
+	margin-bottom: 8px;
+	padding: 8px;
+	//padding-top: 10px;
+	//padding-bottom: 10px;
+	float: right;
+	//line-height:200%;
+
+	// Put a nice rounded border around the table.
+	border-radius: $radius;
+	box-shadow: 0px 0px $panel_shadow $panel_shadow_colour;
+	
+	max-width: 20em;
+	
+	a
+	{
+		display:block;
+		margin-top: 1em;
+		margin-bottom: 1em;
+		text-shadow: 0 0 0.5em rgba(0, 0, 0, 0.49);
+		&:link, &:visited
+		{
+			text-decoration: none;
+			color: #000000;
+			//border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+		}
+		&:hover, &:active
+		{
+			text-decoration: none;
+			color: #404040;
+			text-shadow: 0 0 0.5em white;
+			//border-bottom: 1px solid rgba(128, 128, 128, 0.5);
+		}
+	}
+	
+	
+}
+
+form
+{
+}
+
+article
+{
+	background-color: white;
+	background: linear-gradient(to bottom, #FFF 0%, #F8F0E5 100%);
+	color: #606060;
+	border-radius: $radius;
+	box-shadow: 0px 0px $panel_shadow $panel_shadow_colour;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	padding: 1em;
+	//border: 2px;
+	//border-style: solid;
+	//border-color: white;
+	overflow-x: auto;
+	//width: auto;
+}
+article:first-of-type
+{
+	overflow-x: visible;
+}
+
+table
+{
+	border-collapse:collapse;
+	background-color: #D8D8D8;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	width: auto;
+	//margin: 1em;
+
+	// Put a nice rounded border around the table.
+	border-radius: $radius;
+	box-shadow: 0px 0px $panel_shadow $panel_shadow_colour;
+	// Prevent the cell borders at the edge of the table from drawing.
+	td:first-child { border-left: none; }
+	td:last-child { border-right: none; }
+	th:first-child { border-left: none; }
+	th:last-child { border-right: none; }
+	tr:first-child th { border-top: none; }
+	tr:last-child td { border-bottom: none; }
+
+	th, td
+	{
+		text-align:left;
+		white-space:nowrap;
+		margin: 2px;
+		border: 1px solid black;
+		padding: $swimmer_list_padding;
+	}
+	th
+	{
+		// This behaves as a minimum width, so columns can still be larger to fit their content
+		width : 8em;
+	}
+	tr.Free
+	{
+		background-color: #EADDF8;
+	}
+	tr.Breast
+	{
+		background-color: #D4E4E4;
+	}
+	tr.Fly
+	{
+		background-color: #DCEEDC;
+	}
+	tr.Back
+	{
+		background-color: #EEE5CE;
+	}
+	tr.IM
+	{
+		background-color: #F1D6CD;
+	}
+
+	td.RaceTime
+	{
+		text-align:right;
+	}
+	td.NotEligible
+	{
+		text-align:right;
+		text-decoration:line-through;
+	}
+	.event
+	{
+	}
+	.name
+	{
+	}
+
+	// Change the colour of links
+	a:link, a:visited {text-decoration: none; color: #404040; }
+	a:hover, a:active {text-decoration: none; color: #404040; }
+
+}
+/*
+ul
+{
+  background-color: darkgrey;
+  width:50%;
+  height:250px;
+}*/
+
+label
+{
+	/* background-color: orange; */
+}
+
+/* Apply a position to the swimmer_selection, so that its children's absolute positioning
+will be relative to it */
+#swimmer_selection
+{
+	//position:relative;
+	background-color: $outer_panel_background_colour;
+	width: 30em;
+}
+
+#swimmer_filter
+{
+	margin: 2px;
+}
+
+#swimmer_selection
+{
+}
+select
+{
+	background-color: $panel_background_colour;
+	
+}
+#swimmer_choice_list
+{
+	//width: 45%;
+	//margin: $swimmer_list_margin;
+	//border-color: $border_colour;
+	//border-radius: $radius;
+	//padding: $swimmer_list_padding;
+	//box-shadow: 0px 0px 8px #000;
+	
+	max-width: 20em;
+}
+/*
+ul
+{
+	#swimmer_choice_list,ul#selected_swimmers
+	{
+		background-color: $panel_background_colour;
+		//width: 45%;
+		width: 10em;
+		height: 15em;
+		margin: $swimmer_list_margin;
+		//border-color: $border_colour;
+		border-radius: 8px;
+		//border: $swimmer_list_border;
+		//border-style: inset;
+		padding: $swimmer_list_padding;
+		overflow: auto;
+		float: left;
+		//display: inline;
+		box-shadow: 0px 0px 8px #000;
+	}
+	#swimmer_choice_list
+	{
+		//width: 45%;
+	//	position: absolute;
+		//float: left;
+	}
+	#selected_swimmers
+	{
+		//position: absolute;
+		//margin-left: 16em;
+		//float: right;
+	}
+}
+*/
+
+div.spacer {
+  clear: both;
+  }
+.draggable_swimmer
+{
+	margin: 2px;
+	border: 1px;
+	border-radius: $radius;
+	border-color: $border_colour;
+	border-style: inset;
+}
+
+/* Rules to resize things on small screens */
+@media only screen and (min-width : 0px) and (max-width : 480px)
+{
+	body
+	{
+		font-size:75%;
+	}
+	h1
+	{
+		font-size: 3em;
+	}
+	nav a
+	{
+		max-width: 7em;
+		font-size: 80%;
+	}
+}
+@media only screen and (min-width : 480px) and (max-width : 1024px)
+{
+	body
+	{
+		font-size:85%;
+	}
+	h1
+	{
+		font-size: 3.5em;
+	}
+	nav a
+	{
+		max-width: 10em;
+		//font-size: 50%; 
+	}
+}
+
+
+/* Smartphones (portrait and landscape) ----------- */
+@media only screen 
+and (min-device-width : 320px) 
+and (max-device-width : 480px)
+{
+}
+
+/* Smartphones (landscape) ----------- */
+@media only screen 
+and (min-width : 321px)
+{
+}
+
+/* Smartphones (portrait) ----------- */
+@media only screen 
+and (max-width : 320px)
+{
+}
+
+/* iPads (portrait and landscape) ----------- */
+@media only screen 
+and (min-device-width : 768px) 
+and (max-device-width : 1024px)
+{
+}
+
+/* iPads (landscape) ----------- */
+@media only screen 
+and (min-device-width : 768px) 
+and (max-device-width : 1024px) 
+and (orientation : landscape)
+{
+}
+
+/* iPads (portrait) ----------- */
+@media only screen 
+and (min-device-width : 768px) 
+and (max-device-width : 1024px) 
+and (orientation : portrait)
+{
+}
+
+/* Desktops and laptops ----------- */
+@media only screen 
+and (min-width : 1224px)
+{
+}
+
+/* Large screens ----------- */
+@media only screen 
+and (min-width : 1824px)
+{
+}
+
+/* iPhone 4 ----------- */
+@media
+only screen and (-webkit-min-device-pixel-ratio : 1.5),
+only screen and (min-device-pixel-ratio : 1.5)
+{
+}

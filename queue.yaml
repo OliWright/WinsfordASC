@@ -1,0 +1,13 @@
+# Change the refresh rate of the default queue from 5/s to 5/m
+queue:
+- name: default
+  rate: 5/m
+  bucket_size: 1
+  max_concurrent_requests: 1
+  
+# A very slow queue for updating large jobs in the background
+- name: nice
+  rate: 1/m
+  bucket_size: 1
+  max_concurrent_requests: 1
+  

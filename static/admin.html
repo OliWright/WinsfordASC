@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+<script type="text/javascript" src="events.js"></script>
+<script type="text/javascript" src="event.js"></script>
+<script type="text/javascript" src="swimmer.js"></script>
+<script type="text/javascript" src="swimmerlist.js"></script>
+<script type="text/javascript" src="admin.js"></script>
+</head>
+
+<!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<body>
+	<nav>
+	  <a href="index.html">Home</a>
+	  <a href="personal_bests.html">Personal Bests</a>
+	  <a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
+	  <a href="club_records.html">Club Records</a>
+	  <a href="admin.html">Admin</a>
+	</nav>
+	<h1>Winsford Swimming Club</h1>
+	<article>
+		<h2>Site Administration.</h2>
+		<!-- <h3>Currently down...</h3> -->
+		<p>If you don't know what you're doing then you shouldn't be here.</p>
+	</article>
+	<article>
+		<h2>Individual Swimmer Updates</h2>
+		<div id="swimmer_filter">
+			<label>Gender:<select id="gender_select" name="gender" onchange="genderChange( this.value )">
+				<option value="">Any</option>
+				<option value="M">Male</option>
+				<option value="F">Female</option>
+			</select></label>
+			<label>Age:</span><select id="age_select" name="age" onchange="ageChange( this.value )">
+				<option value="0">Any</option>
+				<option value="9">9</option>
+				<option value="10">10</option>
+				<option value="11">11</option>
+				<option value="12">12</option>
+				<option value="13">13</option>
+				<option value="14">14</option>
+				<option value="15">15</option>
+				<option value="16">16</option>
+				<option value="Over16">Over 16</option>
+			</select></label>
+			<select id="swimmer_choice_list" onchange="swimmerSelected(this)">
+				<option>Loading...</option>
+			</select>
+		</div>
+		<div id="selected_swimmers"></div>
+		<button onclick=updateSwimsForSelected()>Update all swims</button>
+		<button onclick=updatePBsForSelected()>Update PBs only</button>
+	</article>
+	<article>
+		<h2>Update Swimmers</h2>
+		<p>Enter a family name or the starting letters of a family name to search for Winsford swimmers.</p>
+		<p>Enter a single letter to search for all Winsford swimmers with a family name starting with that letter.</p>
+		<p>Enter a-c to search for all Winsford swimmers with a family name starting with a-c.</p>
+		<p>Enter an ASA swimmer number to add that swimmer whether or not they are registered to Winsford.</p>
+		<input id="update_swimmers_input" value=""/>
+		<button onclick=updateSwimmers()>Update Swimmers</button>
+	</article>
+	<article>
+		<h2>Update Swims</h2>
+		<p>Enter a family name or the starting letters of a family name to update swims for all matching swimmers.</p>
+		<p>Enter a single letter to update swims for all Winsford swimmers with a family name starting with that letter.</p>
+		<p>Enter a-c to update swims for all Winsford swimmers with a family name starting with a-c.</p>
+		<input id="update_swims_input" value=""/>
+		<button onclick=updateSwims()>Update Swims</button>
+	</article>
+
+	<article>
+		<button onclick='doAdminPost( "/admin/queue_update_all_swims", "" )'>Queue update of all swims for all swimmers</button>
+		<button onclick='doAdminPost( "/admin/queue_update_all_personal_bests", "" )'>Queue update of all personal bests for all swimmers</button>
+		<button onclick='doAdminPost( "/admin/update_swimmer_list", "" )'>Update swimmer list</button>
+	</article>
+	
+	<article>
+		<h2>Server Response.</h2>
+		<div id="server_response" style="white-space:pre"></div>
+	</article>
+</body>
+
+</html>

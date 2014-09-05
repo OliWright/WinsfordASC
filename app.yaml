@@ -1,0 +1,65 @@
+application: winsford-asc
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+  
+skip_files:
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
+- ^(.*/)?.*\.scss$
+
+builtins:
+- remote_api: on
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /stylesheets
+  static_dir: stylesheets
+
+# Admin
+- url: /admin.html
+  static_files: static/admin.html
+  upload: static/admin.html
+  login: admin
+
+# All URLs ending in .gif .png or .jpg are treated as paths to static files in
+# the static/ directory. The URL pattern is a regexp, with a grouping that is
+# inserted into the path to the file.
+- url: /(.*\.(txt|html|js|gif|png|jpg))$
+  static_files: static/\1
+  upload: static/.*\.(txt|html|js|gif|png|jpg)
+  
+- url: /admin.*
+  script: admin.app
+  login: admin
+  
+# Relay team generator 
+- url: /relay/.*
+  script: relay.app
+
+# Uncomment to enable the remote API
+#- url: /remoteapi.*
+#  script: google.appengine.ext.remote_api.handler.application
+#  login: admin
+
+# This just redirects root requests to index.html
+- url: /
+  static_files: static/index.html
+  upload: static/index.html
+
+# Everything else to main  
+- url: .*
+  script: main.app
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
+- name: lxml
+  version: latest

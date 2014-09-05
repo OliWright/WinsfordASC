@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+<script type="text/javascript" src="events.js"></script>
+<script type="text/javascript" src="event.js"></script>
+<script type="text/javascript" src="swimmer.js"></script>
+<script type="text/javascript" src="helpers.js"></script>
+<script type="text/javascript" src="relaygen.js"></script>
+</head>
+
+<!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<body>
+	<nav>
+	  <a href="index.html">Home</a>
+	  <a href="personal_bests.html">Personal Bests</a>
+	  <a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
+	  <a href="club_records.html">Club Records</a>
+	  <a href="admin.html">Admin</a>
+	</nav>
+	<h1>Winsford Swimming Club</h1>
+	<article>
+		<h2>Ultimate Relay Team Generator.</h2>
+		<p>This is still a bit scruffy, but on the whole it works.</p>
+		<p>Choose the age range, the event and the date of the race and it will select a list of candidates for you and, for IM, select the best combination of swimmers in each leg. You can manually exclude swimmers from individual legs if you like and it will update the best team.</p>
+		<p>The times used are all 50m PBs converted into short course times using the approved ASA conversion algorithm.</p>
+		<div id="event_filter"> <!-- JavaScript will hide this when the 'Go' button is pressed -->
+			<label>Gender:<select name="gender" onchange="relayGenderChange( this.value )">
+				<option value="M">Male</option>
+				<option value="F">Female</option>
+			</select></label>
+			<label>Minimum Age:<select name="minAge" onchange="relayMinAgeChange( this.value )">
+				<option value="9">9</option>
+				<option value="10">10</option>
+				<option value="11">11</option>
+				<option value="12">12</option>
+				<option value="13">13</option>
+				<option value="14">14</option>
+				<option value="15">15</option>
+				<option value="16">16</option>
+			</select></label>
+			<label>Maximum Age:<select id="maxAge" name="maxAge" onchange="relayMaxAgeChange( this.value )">
+				<option value="9">9</option>
+				<option value="10">10</option>
+				<option value="11">11</option>
+				<option value="12">12</option>
+				<option value="13">13</option>
+				<option value="14">14</option>
+				<option value="15">15</option>
+				<option value="16">16</option>
+				<option value="200" selected>Open</option>
+			</select></label>
+			<label>Event:<select name="event" onchange="relayEventChange( this.value )">
+				<option value="0">4x50 Free</option>
+				<option value="1">4x100 Free</option>
+				<option value="2">4x200 Free</option>
+				<option value="3">4x50 IM</option>
+				<option value="4">4x100 IM</option>
+				<option value="5">4x200 IM</option>
+			</select></label>
+			<label>Date:<input type="date" id="relayDate" name="Date" onchange="relayDateChange( this.value )"></label>
+			<button onclick="getCandidates()">Go</button>
+		</div>
+	</article>
+	<div id="candidates">
+	</div>
+</body>
+
+</html>
