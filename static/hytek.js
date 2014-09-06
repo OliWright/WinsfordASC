@@ -1,22 +1,23 @@
-// Originated from https://github.com/AlexKizer/hy3.js
+// This file was originally from https://github.com/AlexKizer/hy3.js
+// and looks like it was written for node.js
+// I've refactored it to work in a browser, but tried to keep my
+// changes as minimal as possible.
+//   Oli Wright.
 
 var Hytek = function() {
     console.log('!');
     this.includeAlias = true;
-    this.tags = JSON.parse(fs.readFileSync('tags.json').toString());
+    this.tags = hy3Tags;
 }
 
-function newline(buffer) {
-    return buffer[131] === 0x0a ? 2 : 1;
+function newline(str) {
+    return str.charCodeAt(131) === 0x0a ? 2 : 1;
 }
 
-Hytek.prototype.parseSync = function(file) {
+Hytek.prototype.parseContents = function(str) {
     var o = [],
-        buf = fs.readFileSync(file),
-        str = buf.toString('ascii'),
-        line = 130 + newline(buf),//determine if file uses 0D or 0D0A newline character, only one is interpretted by node when converted to string from buffer
+        line = 130 + newline(str),//determine if file uses 0D or 0D0A newline character
         lines = str.length / line;
-    console.log('( ' + str.length + ' / ' + line + ') = ' + lines);
     for (i = 0; i < lines; i++) {
         var start = i * line;
         var l = this.parseLine(str.slice(start, start + line), this.tags);
@@ -27,21 +28,18 @@ Hytek.prototype.parseSync = function(file) {
     return o;
 }
 
+Hytek.prototype.parseSync = function(file) {
+    var buf = fs.readFileSync(file),
+        str = buf.toString('ascii');
+    return parseContents(str);
+}
+
 Hytek.prototype.parse = function(file, callback){
     fs.readFile(file, function(err, buf){
         if(err)
             return callback(err, null);
-        var str = buf.toString('ascii'),
-            line = 130 + newline(buf),
-            lines = str.length / line,
-            o = new Array();
-        for (i = 0; i < lines; i++) {
-            var start = i * line;
-            var l = this.parseLine(str.slice(start, start + line), tags);
-            o[i] = l;
-            console.log(l);
-            console.log('###');
-        }
+        var str = buf.toString('ascii');
+        var o = parseContents(str);
         callback(null, o);
     });
 }
@@ -93,6 +91,6 @@ function format(jsonArray, format){
     }
 }
 
-module.exports = new Hytek();
+//module.exports = new Hytek();
 //exports.parseSync = parseSync;
 //exports.parse = parse;
