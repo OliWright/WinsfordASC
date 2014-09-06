@@ -1,5 +1,4 @@
-var fs = require('fs'),
-    utils = require('./hytekutils.js');
+// Originated from https://github.com/AlexKizer/hy3.js
 
 var Hytek = function() {
     console.log('!');
