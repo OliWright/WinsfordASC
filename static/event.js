@@ -266,3 +266,17 @@ function GetEvent( event )
 		return events[ idx ];
 	}
 }
+
+function findEvent( distance, stroke, course )
+{
+	var i = eventIdxLut[ course.code ][ stroke.code ];
+	var end = i + 6;
+	if( end > 36 ) { end = 36; }
+	for( ; i < end; i++ )
+	{
+		if( events[i].distance == distance )
+		{
+			return events[i];
+		}
+	}
+}
