@@ -267,7 +267,7 @@ function GetEvent( event )
 	}
 }
 
-function GetEvent( distance, stroke, course )
+function findEvent( distance, stroke, course )
 {
 	var i = eventIdxLut[ course.code ][ stroke.code ];
 	var end = i + 6;
