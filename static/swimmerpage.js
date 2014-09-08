@@ -39,6 +39,17 @@ function populateSwimmerPage()
 	}
 }
 
+// This is called when an event name is clicked in the swimmer's list of PBs.
+// Now we go and fetch data about *all* the swimmer's races in that event.
+function eventSelected( stroke, distance )
+{
+	// Populate the extra_content section of the page with a loading notice
+	var extraContentElement = document.getElementById( "extra_content" );
+	extraContentElement.innerHTML = '<article><h2>Getting swim data for ' + distance + 'm ' + stroke.longName + '...</h2></article>';
+
+	
+}
+
 // Make 'populateSwimmerPage' get called when the swimmer list has been loaded.
 // We need to wait for the swimmer list to be loaded, because we get some of our
 // data from there when populating the HTML.

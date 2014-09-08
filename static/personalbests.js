@@ -103,12 +103,18 @@ function populatePBsTable()
 				comparibleEvent = shortCourseEvents[i];
 				break;
 		}
-		var row = '<tr class="' + event.stroke.shortName + '"><td>' + event.distance + " " + event.stroke.shortName;
+		var row = '<tr class="' + event.stroke.shortName + '"><td';
+		if( pbTableSingleSwimmerMode )
+		{
+			row += ' onclick="eventSelected(strokes[' + event.stroke.code + '], ' + event.distance + ')"';
+		}
+		row += '>';
+		row += event.distance + " " + event.stroke.shortName;
 		if( timeDisplayMode == 0 )
 		{
 			row += " " + event.course.shortName;
 		}
-		row += "</td>";
+		row += '</td>';
 		var anyTimesForThisEvent = false;
 		for( j = 0; j < numColumns; j++ )
 		{
