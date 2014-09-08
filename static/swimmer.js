@@ -22,8 +22,10 @@
 // Constructor of a Swimmer object from a string in the swimmer list data
 // from the server.
 // Pass today's date in also, so we can calculate the swimmer's age.
+
 function Swimmer( row, today )
 {
+	// TODO: Follow the naming style guide
 	var tok = row.split("|");
 	this.is_male = false;
 	if( tok[4]=="M" ) { this.is_male = true; }

@@ -191,6 +191,15 @@ table
 		background-color: #F1D6CD;
 	}
 
+	tr.Invalid
+	{
+		background-color: #FF9393;
+	}
+	tr.Valid
+	{
+		background-color: #95F99C;
+	}
+
 	td.RaceTime
 	{
 		text-align:right;

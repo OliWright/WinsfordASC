@@ -117,6 +117,10 @@ table {
     background-color: #EEE5CE; }
   table tr.IM {
     background-color: #F1D6CD; }
+  table tr.Invalid {
+    background-color: #FF9393; }
+  table tr.Valid {
+    background-color: #95F99C; }
   table td.RaceTime {
     text-align: right; }
   table td.NotEligible {

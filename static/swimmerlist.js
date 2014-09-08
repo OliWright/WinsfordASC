@@ -337,6 +337,30 @@ function setIndividualSelectedSwimmer( asaNumber )
 	addSwimmerToSelectedList( asaNumber );
 }
 
+// TODO: Make this look through the Cat1 swimmers too.
+// We'll need to add a Cat1 swimmer list, and add date-of-birth to
+// the Cat1 swimmer.  But we probably need to think about keeping
+// date-of-birth for Cat1 swimmers entirely server-side for legal issues.
+// Which in turn means pushing this function server-side and making
+// it asynchronous.
+function findSwimmerAsaNumberByNameAndDateOfBirth( firstName, lastName, dateOfBirth )
+{
+	var firstNameLower = firstName.toLowerCase();
+	var lastNameLower = lastName.toLowerCase();
+	var dateOfBirthValue = dateOfBirth.valueOf();
+	for (i = 0; i < numSwimmers; i++)
+	{
+		var swimmer = swimmers[i];
+		if(
+			(swimmer.date_of_birth.valueOf() == dateOfBirthValue) &&
+			(swimmer.first_name.toLowerCase() == firstNameLower) &&
+			(swimmer.last_name.toLowerCase() == lastNameLower))
+		{
+			return swimmer.asa_number;
+		}
+	}
+}
+
 // When the page is loaded, async get the swimmer list
 AddListener( "onLoad", loadSwimmerList );
 // When the list of swimmers is loaded, then populate the list
