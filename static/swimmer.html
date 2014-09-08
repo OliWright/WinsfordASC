@@ -2,14 +2,15 @@
 <html>
 
 <head>
-<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
-<script type="text/javascript" src="events.js"></script>
-<script type="text/javascript" src="event.js"></script>
-<script type="text/javascript" src="swimmer.js"></script>
-<script type="text/javascript" src="swimmerlist.js"></script>
-<script type="text/javascript" src="helpers.js"></script>
-<script type="text/javascript" src="swimmerpage.js"></script>
-<script type="text/javascript" src="personalbests.js"></script>
+	<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+	<script type="text/javascript" src="events.js"></script>
+	<script type="text/javascript" src="event.js"></script>
+	<script type="text/javascript" src="swimmer.js"></script>
+	<script type="text/javascript" src="swimmerlist.js"></script>
+	<script type="text/javascript" src="helpers.js"></script>
+	<script type="text/javascript" src="swim.js"></script>
+	<script type="text/javascript" src="swimmerpage.js"></script>
+	<script type="text/javascript" src="personalbests.js"></script>
 </head>
 
 <!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
@@ -27,14 +28,14 @@
 	<article>
 		<!-- JavaScript in swimmer.js will inject HTML into this div -->
 		<div id="swimmer_data"><h2>Swimmer data</h2><p>Loading...</p></div>
-	</article>
-	<article>
-		<h2>Personal Bests</h2>
 		<label>Times:</span><select id="time_display_mode" name="timeDisplayMode" onchange="changeTimeDisplayMode( this.value )">
 			<option value="0">Both long and short course</option>
 			<option value="1">Converted to short course times</option>
 			<option value="2">Converted to long course times</option>
 		</select></label>
+	</article>
+	<article>
+		<h2>Personal Bests</h2>
 		<div id="personal_bests"></div>
 	</article>
 	<div id="extra_content">

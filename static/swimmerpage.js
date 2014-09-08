@@ -39,15 +39,94 @@ function populateSwimmerPage()
 	}
 }
 
+function createSwimHistoryTable( swims )
+{
+	var table = '<table>';
+	table += '<tr><th>Date</th><th>Meet</th><th>Time</th></tr>';
+	
+	var targetCourse;
+	switch( timeDisplayMode )
+	{
+		case 0:
+			break;
+		case 1:
+			targetCourse = shortCourse;
+			break;
+		case 2:
+			targetCourse = longCourse;
+			break;
+	}
+	
+	for( var i = 0; i < swims.length; i++ )
+	{
+		var swim = swims[i];
+		var row = '<tr class="' + swim.event.stroke.shortName + '">';
+		row += '<td>' + swim.date.toLocaleDateString() + '</td>';
+		row += '<td>' + swim.meet + '</td>';
+		row += createRaceTimeTdElement( swim.event, swim.raceTime, swim.key, targetCourse );
+		row += '</tr>'
+		table += row;
+	}
+	table += '</table>';
+	return table;
+}
+
 // This is called when an event name is clicked in the swimmer's list of PBs.
 // Now we go and fetch data about *all* the swimmer's races in that event.
 function eventSelected( stroke, distance )
 {
 	// Populate the extra_content section of the page with a loading notice
 	var extraContentElement = document.getElementById( "extra_content" );
-	extraContentElement.innerHTML = '<article><h2>Getting swim data for ' + distance + 'm ' + stroke.longName + '...</h2></article>';
+	var eventName = distance + 'm ' + stroke.longName;
+	extraContentElement.innerHTML = '<article><h2>Getting swim data for ' + eventName + '...</h2></article>';
+	extraContentElement.scrollIntoView();
 
+	var request = new XMLHttpRequest();
+
+	// Asynchronous onload function that's called when swims are returned from the server
+	request.onload = function(e)
+	{
+		// Convert the packed text swims into an array of Swim objects
+		var swimLines = this.responseText.split("\n");
+		var swims = [];
+		for( var i = 0; i < swimLines.length; i++ )
+		{
+			if( swimLines[i] != "" )
+			{
+				swims.push( new Swim( swimLines[i] ) );
+			}
+		}
+
+		// Sort them by date
+		function compareSwimDates(a,b)
+		{
+			if( a.date < b.date ) return -1;
+			if (a.date > b.date) return 1;
+			return 0;
+		}
+		swims.sort( compareSwimDates );		
+		
+		// List them
+		html = '<article><h2>' + eventName + ' History</h2>'
+		html += createSwimHistoryTable( swims );
+		html += '</article>';
+		extraContentElement.innerHTML = html;
+		extraContentElement.scrollIntoView();
+	}
+
+	request.onerror = function(e)
+	{
+		html = '<article><h2>Error getting swim data from the server</h2>'
+		html += "<p>For what it's worth here's what the server said</p>";
+		html += '<p>' + this.statusText + '</p>';
+		html += '</article>';
+		extraContentElement.innerHTML = html;
+		extraContentElement.scrollIntoView();
+	}
 	
+	var url = "/swim_history?asa_number=" + options.asa_number + "&stroke_code=" + stroke.code + "&distance=" + distance;
+	request.open( "GET", url, true );
+	request.send();
 }
 
 // Make 'populateSwimmerPage' get called when the swimmer list has been loaded.

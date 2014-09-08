@@ -56,5 +56,5 @@ function raceTimeToString( raceTime )
 function parseDate( dateStr )
 {
 	var dateFields = dateStr.split("/");
-	return new Date( dateFields[2], dateFields[1], dateFields[0] );
+	return new Date( dateFields[2], dateFields[1] - 1, dateFields[0] );
 }
