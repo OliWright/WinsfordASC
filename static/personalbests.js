@@ -21,17 +21,6 @@
 
 var pbCache = {}
 
-var Race = function( time, meet, date, key )
-{
-	this.time = time;
-	this.meet = meet;
-	this.date = date;
-	if( key.length != 0 )
-	{
-		this.key = key;
-	}
-}
-
 function deletePBsTable()
 {
 	var pbsElement = document.getElementById( "personal_bests" );
@@ -42,6 +31,46 @@ function deletePBsTable()
 // page.  So the PBs table is only for that single swimmer.
 // In this mode, we add additional columns for venue and date.
 var pbTableSingleSwimmerMode = false;
+
+// Create a <td> HTML element for a race time.
+// This has been pulled into its own helper function because it's getting quite complex.
+// It includes optional conversion into a target course (long or short), in which
+// case it includes a tool-tip for the original time.
+// Also if a key is provided, it creates the time as a hyperlink to a page
+// for the swim.
+function createRaceTimeTdElement( swimEvent, swimTime, swimKey, targetCourse )
+{
+	var isConverted = false;
+	if( targetCourse )
+	{
+		isConverted = (swimEvent.course != targetCourse);
+	}
+
+	var attributes = ' class="RaceTime"';
+	if( isConverted )
+	{
+		attributes += ' title="Original ' + swimEvent.course.longName + ' Time: ' + raceTimeToString( swimTime ) + '"';
+		swimTime = swimEvent.convertRaceTime( swimTime, targetCourse );
+	}
+	
+	var contents;
+	if( swimKey !== undefined )
+	{
+		contents = '<a href="swim.html?swim=' + swimKey + '">' + raceTimeToString( swimTime ) + '</a>';
+	}
+	else
+	{
+		contents = raceTimeToString( swimTime );
+	}
+	
+	var td = '<td' + attributes + '>' + contents;
+	if( isConverted )
+	{
+		td += '<sup>*</sup>';
+	}
+	td += '</td>';
+	return td;
+}
 
 function populatePBsTable()
 {
@@ -89,6 +118,7 @@ function populatePBsTable()
 	{
 		var event;
 		var comparibleEvent;
+		var targetCourse;
 		switch( timeDisplayMode )
 		{
 			case 0:
@@ -97,18 +127,26 @@ function populatePBsTable()
 			case 1:
 				event = shortCourseEvents[i];
 				comparibleEvent = longCourseEvents[i];
+				targetCourse = shortCourse;
 				break;
 			case 2:
 				event = longCourseEvents[i];
 				comparibleEvent = shortCourseEvents[i];
+				targetCourse = longCourse;
 				break;
 		}
-		var row = '<tr class="' + event.stroke.shortName + '"><td>' + event.distance + " " + event.stroke.shortName;
+		var row = '<tr class="' + event.stroke.shortName + '"><td';
+		if( pbTableSingleSwimmerMode )
+		{
+			row += ' onclick="eventSelected(strokes[' + event.stroke.code + '], ' + event.distance + ')"';
+		}
+		row += '>';
+		row += event.distance + " " + event.stroke.shortName;
 		if( timeDisplayMode == 0 )
 		{
 			row += " " + event.course.shortName;
 		}
-		row += "</td>";
+		row += '</td>';
 		var anyTimesForThisEvent = false;
 		for( j = 0; j < numColumns; j++ )
 		{
@@ -116,6 +154,8 @@ function populatePBsTable()
 			var attributes = ' class="RaceTime"';
 			var cacheEntry = cacheEntries[j];
 			var timeIsConverted = false;
+			var swim;
+			var raceEvent = event;
 			if( !cacheEntry.isPopulated )
 			{
 				contents = "...";
@@ -123,69 +163,45 @@ function populatePBsTable()
 			else
 			{
 				// Do we have an entry for this event 
-				var race = cacheEntry[ event.code ];
-				var raceTime = undefined;
-				var raceKey = undefined;
-				var raceVenue = undefined;
-				var raceDate = undefined;
-				if( race !== undefined )
-				{
-					raceTime = race.time;
-					raceKey = race.key;
-					raceVenue = race.meet;
-					raceDate = race.date;
-				}
+				swim = cacheEntry[ event.code ];
 				switch( timeDisplayMode )
 				{
 					case 0:
 						break;
 					case 1:
 					case 2:
-						var comparibleRace = cacheEntry[ comparibleEvent.code ];
-						if( comparibleRace !== undefined )
+						// Is the converted time for a comparible event faster?
+						var comparibleSwim = cacheEntry[ comparibleEvent.code ];
+						if( comparibleSwim !== undefined )
 						{
-							var comparibleRaceTime = comparibleRace.time;
-							// Convert
-							var convertedRaceTime = comparibleEvent.convertRaceTime( comparibleRaceTime, event.course );
-							if( (raceTime === undefined) || ( convertedRaceTime < raceTime ) )
+							var convertedRaceTime = comparibleEvent.convertRaceTime( comparibleSwim.raceTime, targetCourse );
+							if( (swim === undefined) || ( convertedRaceTime < swim.raceTime ) )
 							{
 								// Use the converted time as the PB
 								timeIsConverted = true;
 								anyConvertedTimes = true;
-								raceTime = convertedRaceTime;
-								raceKey = comparibleRace.key;
-								raceVenue = comparibleRace.meet;
-								raceDate = comparibleRace.date;
-								attributes += ' title="Original ' + comparibleEvent.course.longName + ' Time: ' + raceTimeToString( comparibleRaceTime ) + '"';
+								swim = comparibleSwim;
+								raceEvent = comparibleEvent;
 							}
 						}
 						break;
 				}
-				if( raceTime !== undefined )
-				{
-					if( raceKey !== undefined )
-					{
-						contents = '<a href="swim.html?swim=' + raceKey + '">' + raceTimeToString( raceTime ) + '</a>';
-					}
-					else
-					{
-						contents = raceTimeToString( raceTime );
-					}
-					anyTimesForThisEvent = true;
-				}
 			}
-			row += '<td' + attributes + '>' + contents;
-			if( timeIsConverted )
+			if( swim === undefined )
 			{
-				row += '<sup>*</sup>';
+				row += '<td/>';
 			}
-			row += '</td>';
+			else
+			{
+				row += createRaceTimeTdElement( raceEvent, swim.raceTime, swim.key, targetCourse );
+				anyTimesForThisEvent = true;
+			}
 
 			if( pbTableSingleSwimmerMode && anyTimesForThisEvent )
 			{
 				// Add additional td elements for meet venue and date
-				row += '<td>' + raceVenue + '</td>'; 
-				row += '<td>' + raceDate.toLocaleDateString() + '</td>'; 
+				row += '<td>' + swim.meet + '</td>'; 
+				row += '<td>' + swim.date.toLocaleDateString() + '</td>'; 
 			}
 			
 		}
@@ -286,17 +302,14 @@ function updatePBs()
 				{
 					if( rows[i] != "" )
 					{
-						var tok = rows[i].split(",");
+						var tok = rows[i].split("^");
 						var event = GetEvent( tok[0] );
 						for( var j = 0; j < numToGet; j++ )
 						{
-							var raceTime = tok[(j*4)+1];
-							if( raceTime != "" )
+							var swimStr = tok[(j*4)+1];
+							if( swimStr != "" )
 							{
-								var meet = tok[(j*4)+2];
-								var date = parseDate( tok[(j*4)+3] );
-								var swimKey = tok[(j*4)+4];
-								newCacheEntries[ j ][ event.code ] = new Race( parseFloat(raceTime), meet, date, swimKey );
+								newCacheEntries[ j ][ event.code ] = new Swim( swimStr );
 							}
 						}
 					}

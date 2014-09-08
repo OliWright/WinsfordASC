@@ -49,6 +49,10 @@ function Swim( serverString )
 		}
 	}
 	this.raceTime = parseFloat( fields[6] );
+	if( fields[7] != "" )
+	{
+		this.key = fields[7];
+	}
 }
 
 // Create a html table of the specified swim's splits, with the times multiplied
