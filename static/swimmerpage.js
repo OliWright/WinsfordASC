@@ -110,8 +110,10 @@ function eventSelected( stroke, distance )
 		html = '<article><h2>' + eventName + ' History</h2>'
 		html += createSwimHistoryTable( swims );
 		html += '</article>';
+		html += '<article><h2>Progress</h2><div id="progressGraphLocation"/></article>';
 		extraContentElement.innerHTML = html;
 		extraContentElement.scrollIntoView();
+		createProgressGraph();
 	}
 
 	request.onerror = function(e)
