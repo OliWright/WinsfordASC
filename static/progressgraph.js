@@ -81,8 +81,14 @@ function createProgressGraph()
 	{
 		// Add a canvas element
 		progressGraph = new ProgressGraph( containerElement );
-		//containerElement.addEventListener( "onResize", function(){ progressGraph.resized( this ); } );
+	
+		// This doesn't work.  Don't know why.
 		//containerElement.onresize = function(){ progressGraph.resized( this ); };
+
+		// This doesn't work either.  Don't know why.
+		//containerElement.addEventListener( 'onresize', function(){ progressGraph.resized( this ); } );
+
+		// Have to do this.  But this seems wrong.
 		window.addEventListener('resize', function(){ progressGraph.resized( this ); }, false);
 
 		requestAnimationFrame( updateAnimation );
