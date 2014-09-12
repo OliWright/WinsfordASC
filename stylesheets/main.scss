@@ -136,6 +136,11 @@ article:first-of-type
 {
 	overflow-x: visible;
 }
+// Speculative change to try to make canvas updates smoother
+article.Canvas
+{
+	background: white;
+}
 
 table
 {

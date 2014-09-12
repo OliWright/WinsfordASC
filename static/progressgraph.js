@@ -19,36 +19,72 @@
 // with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
 
-var progressGraphContext;
-
-function drawProgressGraph( ctx )
+function ProgressGraph( containerElement )
 {
-	if( ctx )
+	this.resized( containerElement );
+}
+
+ProgressGraph.prototype.draw = function( timestamp )
+{
+	if( this.ctx )
 	{
+		var ctx = this.ctx;
+		ctx.globalCompositeOperation = 'destination-over';
+		ctx.clearRect( 0, 0, this.width, this.height );
 		ctx.strokeStyle="#FF0000";
-		ctx.strokeRect( 10, 10, ctx.width-20, ctx.height-20 );
-		ctx.strokeRect (10, 10, 55, 50);
+		ctx.strokeRect( 0, 0, this.width, this.height );
 		// ctx.fillStyle = "rgb(200,0,0)";
 		// ctx.fillRect (10, 10, 55, 50);
 
+		var halfBlockWidth = 15;
+		var normX = Math.sin( timestamp * 0.001 );
+		var x = (normX * (this.halfWidth - halfBlockWidth)) + this.halfWidth - halfBlockWidth;
 		ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-		ctx.fillRect (30, 30, 55, 50);
+		ctx.fillRect( x, 30, halfBlockWidth * 2, halfBlockWidth * 2 );
+	}
+}
 
+var progressGraph;
+function updateAnimation( timestamp )
+{
+	progressGraph.draw( timestamp );
+	requestAnimationFrame( updateAnimation );
+}
+
+ProgressGraph.prototype.resized = function( containerElement )
+{
+	if( !this.containerElement )
+	{
+		this.containerElement = containerElement;
+	}
+	width = 1024;
+	if( this.containerElement.clientWidth < width )
+	{
+		width = this.containerElement.clientWidth;
+	}
+	if( !this.width || (this.width != width) )
+	{
+		this.width = width;
+		this.height = Math.floor( this.width * 9 / 16 );
+		var html = '<canvas id="progressGraph" width="' + this.width + '" height="' + this.height + '"/>';
+		this.containerElement.innerHTML = html;
+		this.ctx = document.getElementById( "progressGraph" ).getContext('2d');
+		this.halfWidth = this.width * 0.5;
+		this.halfHeight = this.height * 0.5;
 	}
 }
 
 function createProgressGraph()
 {
-	var progressGraphLocation = document.getElementById( "progressGraphLocation" );
-	if( progressGraphLocation )
+	var containerElement = document.getElementById( "progressGraphLocation" );
+	if( containerElement )
 	{
 		// Add a canvas element
-		var width = progressGraphLocation.clientWidth; 
-		var height = Math.floor( width * 9 / 16 );
-		var html = '<canvas id="progressGraph" width="' + width + '" height="' + height + '"/>';
-		progressGraphLocation.innerHTML = html;
-		progressGraphContext = document.getElementById( "progressGraph" ).getContext('2d');
+		progressGraph = new ProgressGraph( containerElement );
+		//containerElement.addEventListener( "onResize", function(){ progressGraph.resized( this ); } );
+		//containerElement.onresize = function(){ progressGraph.resized( this ); };
+		window.addEventListener('resize', function(){ progressGraph.resized( this ); }, false);
 
-		drawProgressGraph( progressGraphContext );
+		requestAnimationFrame( updateAnimation );
 	}
 }
