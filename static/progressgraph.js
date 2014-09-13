@@ -1,6 +1,6 @@
 // Winsford ASC Google AppEngine App
 //   progress_graph.js
-//   Manages a HTML <canvas> showing a graph of a swimmer's progress.
+//   Manages a Canvas showing a graph of a swimmer's progress.
 //
 // Copyright (C) 2014 Oliver Wright
 //    oli.wright.github@gmail.com
@@ -19,12 +19,8 @@
 // with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
 
-function ProgressGraph( containerElement )
-{
-	this.resized( containerElement );
-}
-
-ProgressGraph.prototype.draw = function( timestamp )
+// Canvas draw method for the progress graph
+function drawProgressGraph( timestamp )
 {
 	if( this.ctx )
 	{
@@ -44,53 +40,12 @@ ProgressGraph.prototype.draw = function( timestamp )
 	}
 }
 
-var progressGraph;
-function updateAnimation( timestamp )
-{
-	progressGraph.draw( timestamp );
-	requestAnimationFrame( updateAnimation );
-}
-
-ProgressGraph.prototype.resized = function( containerElement )
-{
-	if( !this.containerElement )
-	{
-		this.containerElement = containerElement;
-	}
-	width = 1024;
-	if( this.containerElement.clientWidth < width )
-	{
-		width = this.containerElement.clientWidth;
-	}
-	if( !this.width || (this.width != width) )
-	{
-		this.width = width;
-		this.height = Math.floor( this.width * 9 / 16 );
-		var html = '<canvas id="progressGraph" width="' + this.width + '" height="' + this.height + '"/>';
-		this.containerElement.innerHTML = html;
-		this.ctx = document.getElementById( "progressGraph" ).getContext('2d');
-		this.halfWidth = this.width * 0.5;
-		this.halfHeight = this.height * 0.5;
-	}
-}
-
 function createProgressGraph()
 {
 	var containerElement = document.getElementById( "progressGraphLocation" );
 	if( containerElement )
 	{
-		// Add a canvas element
-		progressGraph = new ProgressGraph( containerElement );
-	
-		// This doesn't work.  Don't know why.
-		//containerElement.onresize = function(){ progressGraph.resized( this ); };
-
-		// This doesn't work either.  Don't know why.
-		//containerElement.addEventListener( 'onresize', function(){ progressGraph.resized( this ); } );
-
-		// Have to do this.  But this seems wrong.
-		window.addEventListener('resize', function(){ progressGraph.resized( this ); }, false);
-
-		requestAnimationFrame( updateAnimation );
+		// Create a canvas element for the progress graph
+		new Canvas( containerElement, 320, 1024, 16 / 9, drawProgressGraph );
 	}
 }
