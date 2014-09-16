@@ -22,22 +22,19 @@
 // Canvas draw method for the progress graph
 function drawProgressGraph( timestamp )
 {
-	if( this.ctx )
-	{
-		var ctx = this.ctx;
-		ctx.globalCompositeOperation = 'destination-over';
-		ctx.clearRect( 0, 0, this.width, this.height );
-		ctx.strokeStyle="#FF0000";
-		ctx.strokeRect( 0, 0, this.width, this.height );
-		// ctx.fillStyle = "rgb(200,0,0)";
-		// ctx.fillRect (10, 10, 55, 50);
+	var ctx = this.ctx;
+	ctx.globalCompositeOperation = 'destination-over';
+	ctx.clearRect( 0, 0, this.width, this.height );
+	ctx.strokeStyle="#FF0000";
+	ctx.strokeRect( 0, 0, this.width, this.height );
+	// ctx.fillStyle = "rgb(200,0,0)";
+	// ctx.fillRect (10, 10, 55, 50);
 
-		var halfBlockWidth = 15;
-		var normX = Math.sin( timestamp * 0.001 );
-		var x = (normX * (this.halfWidth - halfBlockWidth)) + this.halfWidth - halfBlockWidth;
-		ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-		ctx.fillRect( x, 30, halfBlockWidth * 2, halfBlockWidth * 2 );
-	}
+	var halfBlockWidth = 15;
+	var normX = Math.sin( timestamp * 0.001 );
+	var x = (normX * (this.halfWidth - halfBlockWidth)) + this.halfWidth - halfBlockWidth;
+	ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+	ctx.fillRect( x, 30, halfBlockWidth * 2, halfBlockWidth * 2 );
 }
 
 function createProgressGraph()
@@ -46,6 +43,15 @@ function createProgressGraph()
 	if( containerElement )
 	{
 		// Create a canvas element for the progress graph
-		new Canvas( containerElement, 320, 1024, 16 / 9, drawProgressGraph );
+		var graph = new Canvas( containerElement, 320, 1024, 16 / 9, drawProgressGraph );
+		// Make the canvas a graph.
+		// Hmm, not sure if this is the best way to structure this.
+		// This means the canvas *is* a graph.  What if we want multiple
+		// graphs in one canvas?
+		// Actually I think that's ok, we composite canvases in that case
+		// which is the preferred way to do it.
+		var verticalAxis = new Axis( 0, 60, 5 );
+		var horizontalAxis = new Axis( 0, 1, 0.1 );
+		graph.createGraph( horizontalAxis, verticalAxis );
 	}
 }

@@ -26,19 +26,24 @@ var canvases = {};
 // Call resized on all Canvases
 function handleResize()
 {
-	for (var key in canvases)
+	for( var key in canvases )
 	{
 		canvases[ key ].resized();
 	}
 }
-window.addEventListener('resize', handleResize, false);
+window.addEventListener( 'resize', handleResize, false );
 
 // Call draw on all canvases
 function updateAnimation( timestamp )
 {
-	for (var key in canvases)
+	for( var key in canvases )
 	{
-		canvases[ key ].draw( timestamp );
+		var canvas = canvases[ key ];
+		if( canvas.draw && canvas.ctx )
+		{
+			canvas.draw( timestamp );
+			canvas.requireFullRedraw = false;
+		}
 	}
 	requestAnimationFrame( updateAnimation );
 }
@@ -51,7 +56,10 @@ function Canvas( containerElement, minWidth, maxWidth, aspectRatio, drawMethod )
 	this.minWidth = minWidth;
 	this.maxWidth = maxWidth;
 	this.aspectRatio = aspectRatio;
-	this.draw = drawMethod;
+	if( drawMethod )
+	{
+		this.draw = drawMethod
+	};
 
 	// Resize does all the creation if it needs to
 	this.resized();
@@ -80,5 +88,6 @@ Canvas.prototype.resized = function()
 		this.ctx = document.getElementById( "progressGraph" ).getContext('2d');
 		this.halfWidth = this.width * 0.5;
 		this.halfHeight = this.height * 0.5;
+		this.requireFullRedraw = true;
 	}
 }
