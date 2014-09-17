@@ -79,6 +79,9 @@ article {
 article:first-of-type {
   overflow-x: visible; }
 
+article.Canvas {
+  background: white; }
+
 table {
   border-collapse: collapse;
   background-color: #D8D8D8;

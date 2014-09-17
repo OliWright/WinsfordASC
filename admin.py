@@ -57,20 +57,21 @@ def GetNameMatchedSwimmers( name_search ):
   matched = []
   if name_search is not None:
     name_search_len = len( name_search )
-    swimmers = Swimmer.query_club( "Winsford" );
-    name_search = name_search.lower();
-    if (name_search_len == 3) and (name_search[1] == '-'):
-      # Ranged update
-      start = name_search[0]
-      end = name_search[2]
-      for swimmer in swimmers:
-        letter = swimmer.last_name[0].lower()
-        if (letter >= start) and (letter <= end):
-          matched.append( swimmer )
-    else:
-      for swimmer in swimmers:
-        if swimmer.last_name.lower().startswith( name_search ):
-          matched.append( swimmer )
+    if name_search_len > 0:
+      swimmers = Swimmer.query_club( "Winsford" );
+      name_search = name_search.lower();
+      if (name_search_len == 3) and (name_search[1] == '-'):
+        # Ranged update
+        start = name_search[0]
+        end = name_search[2]
+        for swimmer in swimmers:
+          letter = swimmer.last_name[0].lower()
+          if (letter >= start) and (letter <= end):
+            matched.append( swimmer )
+      else:
+        for swimmer in swimmers:
+          if swimmer.last_name.lower().startswith( name_search ):
+            matched.append( swimmer )
   return matched
   
 # Scrapes swimmingresults.org for ALL recorded swims for a particular swimmer
