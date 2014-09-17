@@ -209,7 +209,7 @@ Canvas.prototype.drawAxis = function( axis, length, depth, gridLength, isVertica
 
 function drawGraph( timestamp )
 {
-	//if( this.requireFullRedraw )
+	if( this.requireFullRedraw )
 	{
 		var ctx = this.ctx;
 		//ctx.globalCompositeOperation = 'destination-over';
