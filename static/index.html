@@ -29,11 +29,11 @@
 		<h2>My ToDo list</h2>
 		<p>Here's my list of things that this site doesn't currently do, that I'd like it to be able to do.</p>
 		<ul>
-			<li>Add a page for each swimmer, showing their progression over time. With graphs.</li>
+			<li>Add a progress graph to the swimmer's event history.</li>
 			<li>Make the PBs page 'linkable'. Currently if you set up a selection of swimmers, that selection is stored on your device in what's called HTML5 local storage. Which is all well and good unless you want to save a selection and then retrieve it later. I need to add the ability to optionally put the swimmers into the URL instead of using local storage, then you can send links with swimmer selections in them.</li>
 			<li>Fix the display of splits for longer IM races. Often the split times on the ASA site are nonsense (missing splits, or wrongly labelled distances), so I try to figure out what really happened. Most of the time what I've got works fine, but in some longer IM races it can get confused.</li>
 			<li>Add galas. This will include all qualifying times for all age groups so you'll be able to very easily see who qualifies for what.</li>
-			<li>Add ability to import data from Hy-Tek systems. I don't know anything about this yet, other than lots of our time-trial data is on this system and is not published to the ASA.</li>
+			<li>Finish the Hy-Tek data import. Lots of our time-trial data is on this system and is not published to the ASA.</li>
 			<li>Add club records. Once we've got all our time-trial data in, then it should be perfectly possible to automatically generate club records.</li>
 		</ul>
 	</article>
@@ -42,6 +42,11 @@
 		<h3>17/9/2014</h3>
 		<ul>
 			<li>Added the beginnings of some graphing. It's very crude at the moment, but it will get better. If you want to take a look, click on a swimmer's name in the PB table (the only way to get to a swimmer's page at the moment), then click on an event name in their PB table on the swimmer page.</li>
+		<h3>8/9/2014</h3>
+		<ul>
+			<li>Lots of work towards being able to import data from our Hy-Tek database. I've succeeded in getting pretty much all the information I need out of a HY3 meets results file exported from Hy-Tek Team Manager. Now I just need to merge the data into this system's database.</li>
+			<li>Fixed a massive bug relating to how dates are displayed. It turns out that I was showing all dates off by one month. This turns out to be because JavaScript's Date object has this absolutely ridiculous convention where days are numbered from 1, but months are numbered from 0.</li>
+			<li>Added a history of swims for an event in the swimmer's page. Go to the PB page and add a swimmer that you're interested in, then click on their name and it will take you to that swimmer's page (you can bookmark this page if you like). Now if you click on an event name in the PB list, you'll get a history of all the races for that event. This is a precursor to graphs, which I'll hopefully start working on soon...</li>
 		</ul>
 		<h3>5/9/2014</h3>
 		<ul>
