@@ -113,7 +113,7 @@ function eventSelected( stroke, distance )
 		html += '<article class="Canvas"><h2>Progress</h2><div id="progressGraphLocation"/></article>';
 		extraContentElement.innerHTML = html;
 		extraContentElement.scrollIntoView();
-		createProgressGraph();
+		createProgressGraph( swims );
 	}
 
 	request.onerror = function(e)

@@ -37,21 +37,46 @@ function drawProgressGraph( timestamp )
 	ctx.fillRect( x, 30, halfBlockWidth * 2, halfBlockWidth * 2 );
 }
 
-function createProgressGraph()
+function createProgressGraph( swims )
 {
 	var containerElement = document.getElementById( "progressGraphLocation" );
-	if( containerElement )
+	if( containerElement && (swims.length > 1) )
 	{
 		// Create a canvas element for the progress graph
 		var graph = new Canvas( containerElement, 320, 1024, 16 / 9, drawProgressGraph );
+		
+		var startDate = swims[0].date;
+		var endDate = swims[ swims.length - 1 ].date;
+		var fastest = swims[0].raceTime;
+		var slowest = fastest;
+		
+		// Make the data points
+		var dataPoints = [];
+		for( var i = 0; i < swims.length; i++ )
+		{
+			var swim = swims[i];
+			if( swim.raceTime < fastest )
+			{
+				fastest = swim.raceTime;
+			}
+			if( swim.raceTime > slowest )
+			{
+				slowest = swim.raceTime;
+			}
+			dataPoints.push( new DataPoint( swim.date, swim.raceTime ) );
+		}
+		var raceTimeAxisMin = Math.floor( fastest * 0.2 ) * 5;
+		var raceTimeAxisMax = Math.ceil( slowest * 0.2 ) * 5;
+		
 		// Make the canvas a graph.
 		// Hmm, not sure if this is the best way to structure this.
 		// This means the canvas *is* a graph.  What if we want multiple
 		// graphs in one canvas?
 		// Actually I think that's ok, we composite canvases in that case
 		// which is the preferred way to do it.
-		var verticalAxis = new Axis( 0, 60, 5 );
-		var horizontalAxis = new Axis( 0, 1, 0.1 );
+		var verticalAxis = new Axis( raceTimeAxisMin, raceTimeAxisMax, 5, raceTimeToString );
+		var horizontalAxis = new DateAxis( startDate, endDate );
 		graph.createGraph( horizontalAxis, verticalAxis );
+		graph.addDataSeries( new DataSeries( dataPoints ) );
 	}
 }
