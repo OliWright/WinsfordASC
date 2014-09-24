@@ -12,7 +12,7 @@
 <script type="text/javascript" src="personalbests.js"></script>
 <script type="text/javascript">
 	AddListener( "onSwimmerListLoaded", getSelectedSwimmersFromLocalStorage );
-	AddListener( "SwimmerListChanged", saveSelectedSwimmersAndUpdatePBs );
+	AddListener( "onSwimmerListChanged", saveSelectedSwimmersAndUpdatePBs );
 </script>
 </head>
 
@@ -21,14 +21,14 @@
 
 <body>
 	<nav>
-	  <a href="index.html">Home</a>
-	  <a href="personal_bests.html">Personal Bests</a>
-	  <a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
-	  <a href="club_records.html">Club Records</a>
-	  <a href="admin.html">Admin</a>
+		<a href="index.html">Home</a>
+		<a href="swimmer.html">Swimmers</a>
+		<a href="personal_bests.html">Personal Bests</a>
+		<a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
+		<a href="club_records.html">Club Records</a>
 	</nav>
 	<h1>Winsford Swimming Club</h1>
-	<article>
+	<article class="FirstOnPage">
 		<h2>Personal Bests</h2>
 		<p>Use this page to get current personal bests of all Winsford's swimmers past and present.</p>
 		<p>This information is freely available at <a href="http://www.swimmingresults.org/individualbest/">http://www.swimmingresults.org/individualbest/</a>, but is presented here in an easier to digest format.</p>

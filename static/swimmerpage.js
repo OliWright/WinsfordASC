@@ -19,23 +19,44 @@
 // with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
 
+function populateSwimmerPageForSelectedSwimmer()
+{
+	// Show the swimmer data loading placeholder
+	document.getElementById( "swimmer_data_article" ).hidden = false;
+	// Hide the swimmer selector
+	document.getElementById( "swimmer_selector_article" ).hidden = true;
+	// Show the personal bests loading placeholder
+	document.getElementById( "personal_bests_article" ).hidden = false;
+	
+	var swimmer = selectedSwimmersList[0];
+	if( swimmer != null )
+	{
+		var swimmerDataElement = document.getElementById( "swimmer_data" );
+		swimmerDataElement.innerHTML = swimmer.createHtml();
+		
+		// Set the page URL so it can be bookmarked
+		window.history.replaceState( "", "", "swimmer.html?asa_number=" + swimmer.asa_number);
+		document.title = swimmer.getFullName() + "'s PBs";
+	}
+
+	// Put the personal_bests module into 'single swimmer' mode, so that it
+	// displays meet venue and dates for each PB, and ask it to grab the PBs
+	// and populate the table.
+	pbTableSingleSwimmerMode = true;
+	updatePBs();
+}
+
 function populateSwimmerPage()
 {
-	if( options.asa_number !== undefined )
+	if( options.asa_number === undefined )
+	{
+		// Show the swimmer selector
+		document.getElementById( "swimmer_selector_article" ).hidden = false;
+	}
+	else
 	{
 		setIndividualSelectedSwimmer( parseInt( options.asa_number ) );
-		var swimmer = asaNumberToSwimmer[ options.asa_number ];
-		if( swimmer != null )
-		{
-			var swimmerDataElement = document.getElementById( "swimmer_data" );
-			swimmerDataElement.innerHTML = swimmer.createHtml();
-		}
-
-		// Put the personal_bests module into 'single swimmer' mode, so that it
-		// displays meet venue and dates for each PB, and ask it to grab the PBs
-		// and populate the table.
-		pbTableSingleSwimmerMode = true;
-		updatePBs();
+		populateSwimmerPageForSelectedSwimmer();
 	}
 }
 
@@ -135,3 +156,5 @@ function eventSelected( stroke, distance )
 // We need to wait for the swimmer list to be loaded, because we get some of our
 // data from there when populating the HTML.
 AddListener( "onSwimmerListLoaded", populateSwimmerPage );
+
+AddListener( "onSwimmerListChanged", populateSwimmerPageForSelectedSwimmer );

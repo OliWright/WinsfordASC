@@ -76,7 +76,7 @@ article {
   padding: 1em;
   overflow-x: auto; }
 
-article:first-of-type {
+article.FirstOnPage {
   overflow-x: visible; }
 
 article.Canvas {
