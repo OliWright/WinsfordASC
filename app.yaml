@@ -50,7 +50,10 @@ handlers:
 - url: /
   static_files: static/index.html
   upload: static/index.html
-
+  
+- url: /get_authorize_url /get_credentials
+  script: oauth.app
+  
 # Everything else to main  
 - url: .*
   script: main.app

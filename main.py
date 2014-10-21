@@ -35,6 +35,8 @@ from event import long_course_events
 from event import Event
 from race_time import RaceTime
 from static_data import StaticData
+from oauth import GetAuthorizeURL
+from oauth import GetCredentials
 
 # Member check URL: https://www.swimmingresults.org/membershipcheck/member_details.php?myiref=smith
 # Swim list for member URL: http://www.swimmingresults.org/individualbest/personal_best_time_date.php?back=individualbest&tiref=892569&mode=A&tstroke=1&tcourse=S
