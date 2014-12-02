@@ -51,9 +51,6 @@ handlers:
   static_files: static/index.html
   upload: static/index.html
   
-- url: /oauth2callback
-  script: oauth.app
-  
 # Everything else to main  
 - url: .*
   script: main.app
