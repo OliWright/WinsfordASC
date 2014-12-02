@@ -35,8 +35,8 @@ from event import long_course_events
 from event import Event
 from race_time import RaceTime
 from static_data import StaticData
-from oauth import GetAuthorizeURL
-from oauth import GetCredentials
+from oauth import decorator
+from oauth import service
 
 # Member check URL: https://www.swimmingresults.org/membershipcheck/member_details.php?myiref=smith
 # Swim list for member URL: http://www.swimmingresults.org/individualbest/personal_best_time_date.php?back=individualbest&tiref=892569&mode=A&tstroke=1&tcourse=S
@@ -132,10 +132,25 @@ class GetSwimHistory(webapp2.RequestHandler):
     for swim in swims:
       self.response.out.write( str( swim ) + "\n" )
     
+class GetSignInDetails(webapp2.RequestHandler):
+  @decorator.oauth_aware
+  def get(self):
+    self.response.headers['Content-Type'] = 'text/html'
+    self.response.out.write( '<!doctype html><html><body>')
+    if decorator.has_credentials():
+      # Signed in
+      http = decorator.http()
+      user = service.people().get(userId='me').execute(http)
+      self.response.out.write( '<p>Signed in as: ' + user['displayName'] + '</p>' )
+    else:
+      self.response.out.write( '<p>Not signed in</p>' )
+      self.response.out.write( '<a href="' + decorator.authorize_url() + '">Sign in with Google</a>' )
+    self.response.out.write( '</body></html>')
     
 app = webapp2.WSGIApplication([
   ('/personal_bests', PersonalBests),
   ('/swimmer_list', GetSwimmerList),
   ('/swim_details', GetSwimDetails),
   ('/swim_history', GetSwimHistory),
+  ('/sign_in_details', GetSignInDetails),
 ])

@@ -19,10 +19,12 @@
 # with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
 
+import logging
 from google.appengine.ext import ndb
 from swimmer import Swimmer
 
 swimmer_list_key = ndb.Key( "StaticData", 1 )
+credentials_key = ndb.Key( "StaticData", 2 )
 
 class StaticData(ndb.Model):
   data = ndb.TextProperty( "Data", indexed=False, required=True )
@@ -40,3 +42,14 @@ class StaticData(ndb.Model):
       txt += str( swimmer ) + "\n"
     swimmer_list = cls( key = swimmer_list_key, data = txt )
     swimmer_list.put()
+
+  @classmethod
+  def get_credentials( cls ):
+    credentials = credentials_key.get();
+    if credentials is None:
+      # Create a blank credentials db entry for manual fill-in.
+      logging.info( "Created empty credentials" )
+      credentials = cls( key = credentials_key, data = "Replace this with real credentials" )
+      credentials.put()
+    else:
+      return credentials.data

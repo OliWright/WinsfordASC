@@ -51,7 +51,7 @@ handlers:
   static_files: static/index.html
   upload: static/index.html
   
-- url: /get_authorize_url /get_credentials
+- url: /oauth2callback
   script: oauth.app
   
 # Everything else to main  

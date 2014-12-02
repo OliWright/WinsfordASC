@@ -1,76 +1,90 @@
 import httplib2
 import logging
-import os
-import pickle
+#import os
+#import pickle
 import webapp2
+from static_data import StaticData
 
 from apiclient.discovery import build
-from oauth2client.appengine import oauth2decorator_from_clientsecrets
+from oauth2client import util
+#from oauth2client.appengine import oauth2decorator_from_clientsecrets
+from oauth2client.appengine import OAuth2Decorator
 from oauth2client.client import AccessTokenRefreshError
+from oauth2client import clientsecrets
 from google.appengine.api import memcache
 
+class OAuth2DecoratorFromClientSecretsString(OAuth2Decorator):
+  """An OAuth2Decorator that builds from a clientsecrets string.
 
-# CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
-# application, including client_id and client_secret, which are found
-# on the API Access tab on the Google APIs
-# Console <http://code.google.com/apis/console>
-CLIENT_SECRETS = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-    'client_secrets.json')
+  Uses a clientsecrets string as the source for all the information when
+  constructing an OAuth2Decorator.
 
-# Helpful message to display in the browser if the CLIENT_SECRETS file
-# is missing.
-MISSING_CLIENT_SECRETS_MESSAGE = """
-<h1>Warning: Please configure OAuth 2.0</h1>
-<p>
-To make this sample run you will need to populate the client_secrets.json file
-found at:
-</p>
-<p>
-<code>%s</code>.
-</p>
-<p>with information found on the <a
-href="https://code.google.com/apis/console">APIs Console</a>.
-</p>
-""" % CLIENT_SECRETS
+  Example:
 
+    decorator = OAuth2DecoratorFromClientSecretsString(
+      secrets,
+      scope='https://www.googleapis.com/auth/plus')
+
+
+    class MainHandler(webapp.RequestHandler):
+
+      @decorator.oauth_required
+      def get(self):
+        http = decorator.http()
+        # http is authorized with the user's Credentials and can be used
+        # in API calls
+  """
+
+  @util.positional(3)
+  def __init__(self, secrets, scope):
+    """Constructor
+
+    Args:
+      secrets: string, Client secrets.
+      scope: string or iterable of strings, scope(s) of the credentials being
+        requested.
+    """
+    client_type, client_info = clientsecrets.loads(secrets)
+    if client_type not in [
+        clientsecrets.TYPE_WEB, clientsecrets.TYPE_INSTALLED]:
+      raise InvalidClientSecretsError(
+          'OAuth2Decorator doesn\'t support this OAuth 2.0 flow.')
+    constructor_kwargs = {
+      'auth_uri': client_info['auth_uri'],
+      'token_uri': client_info['token_uri'],
+      'message': 'Missing client secrets',
+    }
+    revoke_uri = client_info.get('revoke_uri')
+    if revoke_uri is not None:
+      constructor_kwargs['revoke_uri'] = revoke_uri
+    logging.info( "Constructing OAuth2Decorator for scope " + scope )
+    super(OAuth2DecoratorFromClientSecretsString, self).__init__(
+        client_info['client_id'], client_info['client_secret'],
+        scope, **constructor_kwargs)
+    self._message = 'Please configure your application for OAuth 2.0.'
+
+
+@util.positional(2)
+def oauth2decorator_from_clientsecrets_string(secrets, scope):
+  """Creates an OAuth2Decorator populated from a clientsecrets file.
+
+  Args:
+    secrets: string, Client secrets.
+    scope: string or list of strings, scope(s) of the credentials being
+      requested.
+
+  Returns: An OAuth2Decorator
+
+  """
+  return OAuth2DecoratorFromClientSecretsString(secrets, scope)
 
 http = httplib2.Http(memcache)
 service = build("plus", "v1", http=http)
-decorator = oauth2decorator_from_clientsecrets(
-    CLIENT_SECRETS,
-    'https://www.googleapis.com/auth/plus.me',
-    MISSING_CLIENT_SECRETS_MESSAGE)
-
-class GetAuthorizeURL(webapp2.RequestHandler):
-  @decorator.oauth_aware
-  def get(self):
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write( decorator.authorize_url() );
-    variables = {
-        'url': decorator.authorize_url(),
-        'has_credentials': decorator.has_credentials()
-        }
-    self.render_response('grant.html', **variables)
-
-class GetCredentials(webapp2.RequestHandler):
-  #@decorator.oauth_required
-  @decorator.oauth_aware
-  def get(self):
-    self.response.headers['Content-Type'] = 'text/plain'
-    if decorator.has_credentials():
-      try:
-        http = decorator.http()
-        user = service.people().get(userId='me').execute(http)
-        text = 'Hello, %s!' % user['displayName']
-
-        self.response.out.write( text );
-      except AccessTokenRefreshError:
-        self.redirect('/')
-    else:
-      self.response.out.write( "Nope" );
+credentials = StaticData.get_credentials()
+decorator = oauth2decorator_from_clientsecrets_string( 
+    credentials,
+    'https://www.googleapis.com/auth/plus.me')
     
 app = webapp2.WSGIApplication([
-  ('/get_authorize_url', GetAuthorizeURL),
-  ('/get_credentials', GetCredentials),
   (decorator.callback_path, decorator.callback_handler())
 ])
