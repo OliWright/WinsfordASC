@@ -36,10 +36,8 @@ from event import Event
 from race_time import RaceTime
 from static_data import StaticData
 from user import User
-
-from authomatic import Authomatic
 from authomatic.adapters import Webapp2Adapter
-from authomatic_config import CONFIG
+from auth import authomatic
 
 # Member check URL: https://www.swimmingresults.org/membershipcheck/member_details.php?myiref=smith
 # Swim list for member URL: http://www.swimmingresults.org/individualbest/personal_best_time_date.php?back=individualbest&tiref=892569&mode=A&tstroke=1&tcourse=S
@@ -48,9 +46,6 @@ from authomatic_config import CONFIG
 
 # If we find a club member listing, then the club property is likely to be "targetclub" like https://www.swimmingresults.org/clubofficers/officers_list.php?targetclub=FSSTESXQ
 # although that looks like it's hashed in some way.   Winsford's code is WINNCHRN
-    
-# Instantiate Authomatic.
-authomatic = Authomatic(config=CONFIG, secret='some random secret string')
 
 class RequestHandler( webapp2.RequestHandler ):
   def check_credentials(self):
@@ -58,15 +53,6 @@ class RequestHandler( webapp2.RequestHandler ):
     user_id = self.request.cookies.get('user_id')
     if user_id:
       self.user = User.get( user_id )
-      #if user:
-      # if credentials.valid:
-        # # We've got credentials, and they're valid.
-        # # Store them in the object.
-        # self.credentials = credentials
-        # if credentials.expire_soon(60 * 60 * 24):
-          # # But there's not much life in them.
-          # # Try to refresh them.
-          # credentials.refresh()
 
 class PersonalBests(RequestHandler):
   def get(self):
@@ -197,19 +183,21 @@ class Login(RequestHandler):
           user = User.create( result.user.id, result.user.credentials.serialize(), result.user.name, result.user.email )
           # Store a user_id cookie so we can retrieve this user
           self.response.set_cookie('user_id', result.user.id)
-
-# Create a home request handler just that you don't have to enter the urls manually.
-class SignIn(RequestHandler):
-  def get(self):
-    # Create links to the Login handler.
-    self.response.write('Login with <a href="login/google">Google</a>, <a href="login/fb">Facebook</a> or <a href="login/tw">Twitter</a>.<br />')
     
 class GetUser(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
     self.check_credentials()
     if hasattr( self, "user" ):
-      self.response.write( self.user.name )
+      self.response.write( self.user.name + '\n' )
+      if hasattr( self.user, "credentials" ):
+        expires_on = self.user.credentials.expiration_date
+        if expires_on is None:
+          self.response.write( "Credentials don't expire\n" )
+        else:
+          self.response.write( "Credentials expire: " + str(expires_on) + '\n' )
+      else:
+        self.response.write( "Credentials not valid\n" )
     
 app = webapp2.WSGIApplication([
   ('/personal_bests', PersonalBests),

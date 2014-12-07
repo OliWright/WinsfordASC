@@ -26,6 +26,7 @@ from swimmer import Swimmer
 swimmer_list_key = ndb.Key( "StaticData", 1 )
 credentials_key = ndb.Key( "StaticData", 2 )
 
+
 class StaticData(ndb.Model):
   data = ndb.TextProperty( "Data", indexed=False, required=True )
 
@@ -42,14 +43,18 @@ class StaticData(ndb.Model):
       txt += str( swimmer ) + "\n"
     swimmer_list = cls( key = swimmer_list_key, data = txt )
     swimmer_list.put()
-
+    
+  @classmethod
+  def get_optional( cls, key ):
+    entry = key.get();
+    if entry is None:
+      # Create a blank entry for manual fill-in.
+      logging.info( "Created empty static data entry" )
+      entry = cls( key = key, data = "Replace this with real data" )
+      entry.put()
+    else:
+      return entry.data
+    
   @classmethod
   def get_credentials( cls ):
-    credentials = credentials_key.get();
-    if credentials is None:
-      # Create a blank credentials db entry for manual fill-in.
-      logging.info( "Created empty credentials" )
-      credentials = cls( key = credentials_key, data = "Replace this with real credentials" )
-      credentials.put()
-    else:
-      return credentials.data
+    return cls.get_optional( credentials_key )

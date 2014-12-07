@@ -3,6 +3,13 @@
 from authomatic.providers import oauth2, oauth1, gaeopenid
 import authomatic
 
+from static_data import StaticData
+import json
+
+credentials = json.loads( StaticData.get_credentials() )
+
+print( "Key: " + credentials["google"]["key"] )
+
 CONFIG = {
     
     'twitter': {
@@ -11,8 +18,8 @@ CONFIG = {
         'class_': oauth1.Twitter,
         
         # Twitter is an AuthorizationProvider so we need to set several other properties too:
-        'consumer_key': '########################',
-        'consumer_secret': '########################',
+        'consumer_key': credentials["twitter"]["key"],
+        'consumer_secret': credentials["twitter"]["secret"],
     },
     
     'facebook': {
@@ -21,8 +28,8 @@ CONFIG = {
         'class_': oauth2.Facebook,
         
         # Facebook is an AuthorizationProvider too.
-        'consumer_key': '########################',
-        'consumer_secret': '########################',
+        'consumer_key': credentials["facebook"]["key"],
+        'consumer_secret': credentials["facebook"]["secret"],
         
         # But it is also an OAuth 2.0 provider and it needs scope.
         'scope': ['user_about_me', 'email', 'publish_stream', 'read_stream'],
@@ -34,20 +41,14 @@ CONFIG = {
         'class_': oauth2.Google,
         
         # Google is an AuthorizationProvider too.
-        'consumer_key': '287569754424-d9ipji8k7r27jkiil0931ffrckerf6tb.apps.googleusercontent.com',
-        'consumer_secret': '_9_dzcaxwF4a2n3TeAvO9Zi7',
+        'consumer_key': credentials["google"]["key"],
+        'consumer_secret': credentials["google"]["secret"],
         'id': authomatic.provider_id(),
  
         # But it is also an OAuth 2.0 provider and it needs scope.
-        'scope': oauth2.Google.user_info_scope + [
-            'https://www.googleapis.com/auth/calendar',
-            'https://mail.google.com/mail/feed/atom',
-            'https://www.googleapis.com/auth/drive',
-            'https://gdata.youtube.com'],
-        '_apis': {
-            'List your calendars': ('GET', 'https://www.googleapis.com/calendar/v3/users/me/calendarList'),
-            'List your YouTube playlists': ('GET', 'https://gdata.youtube.com/feeds/api/users/default/playlists?alt=json'),
-        },
+        'scope': oauth2.Google.user_info_scope,
+        
+        #'offline': True,
     }
     
 }

@@ -29,12 +29,22 @@ function getUser()
 	{
 		signInElement = document.getElementById( "SignIn" );
 		signInElement.hidden = false;
-		html = "";
-		if( this.responseText.length > 0 )
+		var html = "";
+		var lines = this.responseText.split("\n");
+		var signedIn = false;
+		if( lines.length > 0 )
 		{
-			html += '<p>Signed in as ' + this.responseText + '</p>';
+			if( lines[0].length > 0 )
+			{
+				html += '<p>Signed in as ' + lines[0] + '</p>';
+			}
+			html += '<p>' + lines[1] + '</p>';
+			if( lines[1] != "Credentials not valid" )
+			{
+				signedIn = true;
+			}
 		}
-		else
+		if( !signedIn )
 		{
 			html += '<p>Sign in with ';
 			html += '<a href="login/google">Google</a>'
