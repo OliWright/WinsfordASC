@@ -147,7 +147,7 @@ function eventSelected( stroke, distance )
 		extraContentElement.scrollIntoView();
 	}
 	
-	var url = "/swim_history?asa_number=" + options.asa_number + "&stroke_code=" + stroke.code + "&distance=" + distance;
+	var url = "/swim_history?asa_number=" + selectedSwimmersList[0].asa_number + "&stroke_code=" + stroke.code + "&distance=" + distance;
 	request.open( "GET", url, true );
 	request.send();
 }

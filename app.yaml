@@ -50,7 +50,7 @@ handlers:
 - url: /
   static_files: static/index.html
   upload: static/index.html
-
+  
 # Everything else to main  
 - url: .*
   script: main.app

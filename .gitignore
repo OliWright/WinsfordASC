@@ -218,7 +218,7 @@ pip-log.txt
 ## App Engine
 #############
 
-apiclient/
-httplib2/
-oauth2client/
-uritemplate/
+#apiclient/
+#httplib2/
+#oauth2client/
+#uritemplate/

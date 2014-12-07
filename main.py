@@ -35,6 +35,9 @@ from event import long_course_events
 from event import Event
 from race_time import RaceTime
 from static_data import StaticData
+from user import User
+from authomatic.adapters import Webapp2Adapter
+from auth import authomatic
 
 # Member check URL: https://www.swimmingresults.org/membershipcheck/member_details.php?myiref=smith
 # Swim list for member URL: http://www.swimmingresults.org/individualbest/personal_best_time_date.php?back=individualbest&tiref=892569&mode=A&tstroke=1&tcourse=S
@@ -43,8 +46,15 @@ from static_data import StaticData
 
 # If we find a club member listing, then the club property is likely to be "targetclub" like https://www.swimmingresults.org/clubofficers/officers_list.php?targetclub=FSSTESXQ
 # although that looks like it's hashed in some way.   Winsford's code is WINNCHRN
-    
-class PersonalBests(webapp2.RequestHandler):
+
+class RequestHandler( webapp2.RequestHandler ):
+  def check_credentials(self):
+    # Check for Cookie user id
+    user_id = self.request.cookies.get('user_id')
+    if user_id:
+      self.user = User.get( user_id )
+
+class PersonalBests(RequestHandler):
   def get(self):
     asa_numbers = self.request.get('asa_numbers', allow_multiple=True)
     num_swimmers = len( asa_numbers )
@@ -75,12 +85,12 @@ class PersonalBests(webapp2.RequestHandler):
       listEvents( short_course_events )
       listEvents( long_course_events )
         
-class GetSwimmerList(webapp2.RequestHandler):
+class GetSwimmerList(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write( StaticData.get_swimmer_list() )
         
-class GetSwimDetails(webapp2.RequestHandler):
+class GetSwimDetails(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
     swim_key_str = self.request.get('swim')
@@ -102,7 +112,7 @@ class GetSwimDetails(webapp2.RequestHandler):
 
 # Expects attributes for asa_number, stroke_id and distance in the URL
 # Returns a list of all swims.
-class GetSwimHistory(webapp2.RequestHandler):
+class GetSwimHistory(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
     asa_number_str = self.request.get('asa_number')
@@ -129,11 +139,71 @@ class GetSwimHistory(webapp2.RequestHandler):
     
     for swim in swims:
       self.response.out.write( str( swim ) + "\n" )
+
+# Create a simple request handler for the login procedure.
+class Login(RequestHandler):
+
+  # The handler must accept GET and POST http methods and
+  # Accept any HTTP method and catch the "provider_name" URL variable.
+  def any(self, provider_name):
+
+    # It all begins with login.
+    result = authomatic.login(Webapp2Adapter(self), provider_name)
+
+    # Do not write anything to the response if there is no result!
+    if result:
+      # If there is result, the login procedure is over and we can write to response.
+      self.response.write('<a href="..">Home</a>')
+
+      if result.error:
+        # Login procedure finished with an error.
+        self.response.write(u'<h2>Damn that error: {}</h2>'.format(result.error.message))
+
+      elif result.user:
+        # Hooray, we have the user!
+
+        # OAuth 2.0 and OAuth 1.0a provide only limited user data on login,
+        # We need to update the user to get more info.
+        if not (result.user.name and result.user.id):
+          result.user.update()
+
+        # Welcome the user.
+        self.response.write(u'<h1>Hi {}</h1>'.format(result.user.name))
+        self.response.write(u'<h2>Your id is: {}</h2>'.format(result.user.id))
+        self.response.write(u'<h2>Your email is: {}</h2>'.format(result.user.email))
+
+        # Seems like we're done, but there's more we can do...
+
+        # If there are credentials (only by AuthorizationProvider),
+        # we can _access user's protected resources.
+        if result.user.credentials:
+          self.response.write( 'Credentials: ' + result.user.credentials.serialize() )
+          
+          # Create a new User in the database
+          user = User.create( result.user.id, result.user.credentials.serialize(), result.user.name, result.user.email )
+          # Store a user_id cookie so we can retrieve this user
+          self.response.set_cookie('user_id', result.user.id)
     
+class GetUser(RequestHandler):
+  def get(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.check_credentials()
+    if hasattr( self, "user" ):
+      self.response.write( self.user.name + '\n' )
+      if hasattr( self.user, "credentials" ):
+        expires_on = self.user.credentials.expiration_date
+        if expires_on is None:
+          self.response.write( "Credentials don't expire\n" )
+        else:
+          self.response.write( "Credentials expire: " + str(expires_on) + '\n' )
+      else:
+        self.response.write( "Credentials not valid\n" )
     
 app = webapp2.WSGIApplication([
   ('/personal_bests', PersonalBests),
   ('/swimmer_list', GetSwimmerList),
   ('/swim_details', GetSwimDetails),
   ('/swim_history', GetSwimHistory),
+  ('/user', GetUser),
+  webapp2.Route(r'/login/<:.*>', Login, handler_method='any'),
 ])

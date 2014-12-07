@@ -137,28 +137,30 @@ class UpdatePersonalBests(webapp2.RequestHandler):
 class QueueUpdatePersonalBests(webapp2.RequestHandler):
   def post(self):
     asa_numbers = self.request.get_all('asa_number')
+    self.response.headers['Content-Type'] = 'text/plain'
     for asa_number in asa_numbers:
       logging.info( "Queueing update of personal bests for " + asa_number )
       taskqueue.add(url='/admin/update_personal_bests', params={'asa_number': asa_number})
-      self.redirect( '/admin.html' )
 
 class QueueUpdateAllSwimsForAllSwimmers(webapp2.RequestHandler):
   def post(self):
     swimmers = Swimmer.query_club( "Winsford" );
+    self.response.headers['Content-Type'] = 'text/plain'
     for swimmer in swimmers:
       asa_number = str(swimmer.asa_number)
       logging.info( "Queueing update of swims for " + swimmer.full_name() )
+      self.response.out.write( "Queueing update of swims for " + swimmer.full_name() + "\n" )
       taskqueue.add(url='/admin/update_swims', params={'asa_number': asa_number})
-    self.redirect( '/admin.html' )
 
 class QueueUpdatePersonalBestsForAllSwimmers(webapp2.RequestHandler):
   def post(self):
     swimmers = Swimmer.query_club( "Winsford" );
+    self.response.headers['Content-Type'] = 'text/plain'
     for swimmer in swimmers:
       asa_number = str(swimmer.asa_number)
       logging.info( "Queueing update of personal bests for " + swimmer.full_name() )
+      self.response.out.write( "Queueing update of personal bests for " + swimmer.full_name() + "\n" )
       taskqueue.add(url='/admin/update_personal_bests', params={'asa_number': asa_number})
-    self.redirect( '/admin.html' )
     
 class UpdateSwimmers(webapp2.RequestHandler):
   def post(self):
