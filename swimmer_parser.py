@@ -54,19 +54,30 @@ class ParsedSwimmerData():
   # I know - that's a bit pants.
   def is_cat2(self):
     return self.date_of_birth is not None
+
+# Extract the text from an element.
+# This can handle cases where the text is either plain, or inside <b></b>
+# but nothing more complex than that yet (because we don't need to).
+def _get_element_text( element ):
+  if element.text is not None:
+    return element.text
+  return element.findtext( 'b' )
        
 # Scans a table looking for a label in a <td> element.
 # Returns the contents of the next <td>.
 def _get_horizontal_table_field( root, label ):
   for td in root.getiterator( tag="td" ):
-    if td.text.strip() == label:
+    text = _get_element_text( td )
+    if text is not None:
+      logging.info( "TD: " + text )
+    if text is not None and text.strip() == label:
       # This td has the label that we're looking for.
       # The next sibling should contain the actual data
       value_td = td.getnext()
       if value_td is None:
         return
       else:
-        value = helpers.Trim( value_td.text )
+        value = helpers.Trim( _get_element_text( value_td ) )
         if (value is None) or (len(value) == 0):
           return
         return value
@@ -127,6 +138,7 @@ def scrape_swimmer( club, asa_number, response, first_name=None, last_name=None,
 swimmer_list_headers_of_interest = ( "Member", "Family Name", "Given Name", "Known As", "Club" )
 
 def _parse_swimmer_list( swimmer_list_page_text, club, response, force_update=False ):
+  logging.info( "Page Text:\n" + swimmer_list_page_text )
   tree = html.fromstring( swimmer_list_page_text )
   try:
     table = tree.get_element_by_id( "rankTable" )
