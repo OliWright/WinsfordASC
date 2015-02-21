@@ -80,9 +80,23 @@ def FetchUrl( url ):
   try:
     result = urlfetch.fetch( url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36"}, validate_certificate=False )
     return result.content
+  except urlfetch.InvalidURLError:
+    logging.error( "InvalidURLError fetching URL: " + url )
+    return
+  except urlfetch.DeadlineExceededError:
+    logging.error( "DeadlineExceededError fetching URL: " + url )
+    return
+  except urlfetch.DownloadError:
+    logging.error( "DownloadError fetching URL: " + url )
+    return
+  except urlfetch.ResponseTooLargeError:
+    logging.error( "ResponseTooLargeError fetching URL: " + url )
+    return
+  except urlfetch.SSLCertificateError:
+    logging.error( "SSLCertificateError fetching URL: " + url )
+    return
   except:
-    logging.error( "Failed fetching URL: " + url )
-    logging.error( "Exception: " + str(type(e)) + ", Code: " + str(e.code) + ", Reason: " + str(e.reason) )
+    logging.error( "Unkown error fetching URL: " + url )
     return
   
 def CalcAge( date_of_birth, date_to_test ):
