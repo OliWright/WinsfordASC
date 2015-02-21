@@ -81,8 +81,8 @@ def FetchUrl( url ):
     result = urlfetch.fetch( url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36"}, validate_certificate=False )
     return result.content
   except:
-    logging.error( "Failed to fetch URL: " + url )
-    #output.write( "Exception: " + str(type(e)) + ", Code: " + str(e.code) + ", Reason: " + str(e.reason) + "\n" )
+    logging.error( "Failed fetching URL: " + url )
+    logging.error( "Exception: " + str(type(e)) + ", Code: " + str(e.code) + ", Reason: " + str(e.reason) )
     return
   
 def CalcAge( date_of_birth, date_to_test ):
