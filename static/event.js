@@ -187,7 +187,7 @@ var longCourseEvents =
 	new Event( 32, 200, "Back", 41.98, longCourse ),
 	new Event( 33, 200, "IM", 49.7, longCourse ),
 	new Event( 34, 400, "IM", 55.366, longCourse ),
-	new Event( 35, 100, "IM", 45, longCourse ), // TurnFactor is a guess. Can't convert 100 IM.
+	new Event( 35, 100, "IM", 45, longCourse ), // TurnFactor is arbitrary. Can't convert 100 IM.
 ];
 
 var events = 
