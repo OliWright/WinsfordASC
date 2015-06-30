@@ -23,7 +23,7 @@
 	<script type="text/javascript" src="events.js"></script>
 	<script type="text/javascript" src="event.js"></script>
 	<script type="text/javascript" src="helpers.js"></script>
-	<script type="text/javascript">var urlBase = 'conversion.html';</script>
+	<script type="text/javascript">var urlBase = 'conversion3.html';</script>
 	<script type="text/javascript" src="conversion.js"></script>
 </head>
 
@@ -34,15 +34,9 @@
 	<h1>Winsford Swimming Club</h1>
 	<article class="FirstOnPage">
 		<h2>Long/Short Course Time Conversion</h2>
-		<p>This page allows you to convert times between 25m and 50m times using the <a href="https://www.swimmingresults.org/EqvtShare/algorithm.php">ASA Equivalent Time Algorithm.</a>
-		Feel free to use the code in your own website, but if you do we'd appreciate a credit. :-)</p>
-	</article>
-	<article>
-		<h2>Race Details</h2>
-		<p>Enter a time using either of these two widgets. Which one you use is down to personal preference. The first one lets you type in a time, while the second one might use spinny things on whatever device you have.</p>
-		<label>Enter Text: <input  id="input_time_text" value="0:0.0" onchange="TimeTextChanged()" size="7"/></label><br/>
-		<label>Or Select Time: <input type="time" step="0.01" min="00:00:00.000" max="00:40:00.000" value="00:00:00.000" id="input_time" onchange="TimeChanged()" onfocusout="UpdateURL()"/></label><br/>
-		<label>Event: <select id="event_select" name="event" onchange="EventOrModeChanged()">
+		<h3>Race Details</h3>
+		<p><label>Enter Time: <input type="time" step="0.01" min="00:00:00.000" max="00:40:00.000" value="00:00:00.000" id="input_time" onchange="TimeChanged()" onfocusout="UpdateURL()"/></label></p>
+		<p><label>Event: <select id="event_select" name="event" onchange="EventOrModeChanged()">
 			<option value="0">50 Free</option>
 			<option value="1">100 Free</option>
 			<option value="2">200 Free</option>
@@ -60,10 +54,9 @@
 			<option value="14">200 Back</option>
 			<option value="15">200 IM</option>
 			<option value="16">400 IM</option>
-		</select></label><br/>
-		<input type="radio" checked="true" id="short_to_long" name="conversion_mode" onchange="EventOrModeChanged()">Short to Long</input>
-		<input type="radio" id="long_to_short" name="conversion_mode" onchange="EventOrModeChanged()">Long to Short</input>
-		<p>Once you decide which version of time input you prefer you can use a more compact version of this page. The text entry compact version is <a href="conversion2.html">here</a>. The widget compact version is <a href="conversion3.html">here</a>.</p>
+		</select></label><p/>
+		<p><input type="radio" checked="true" id="short_to_long" name="conversion_mode" onchange="EventOrModeChanged()">Short to Long</input>
+		<input type="radio" id="long_to_short" name="conversion_mode" onchange="EventOrModeChanged()">Long to Short</input></p>
 	</article>
 	<article id="conversion_results">
 		<h2>Results</h2>

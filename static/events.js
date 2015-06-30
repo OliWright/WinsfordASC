@@ -64,3 +64,8 @@ window.onload = function ()
 {
 	Broadcast( "onLoad" );
 }
+
+window.onpopstate = function ()
+{
+	Broadcast( "onPopState" );
+}

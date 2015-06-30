@@ -28,7 +28,11 @@
 // d: undefined
 // e: undefined
 var options = {}
-location.search.substr(1).split("&").forEach(function(item) {options[item.split("=")[0]] = item.split("=")[1]})
+function readUrlIntoOptions()
+{
+	location.search.substr(1).split("&").forEach(function(item) {options[item.split("=")[0]] = item.split("=")[1]})
+}
+readUrlIntoOptions()
 
 // Convert a race time in seconds to a string of the form minutes:seconds.fractions (to 2 decimal places)
 function raceTimeToString( raceTime )
@@ -52,9 +56,63 @@ function raceTimeToString( raceTime )
 	return str;
 }
 
+// Converts a race time string in the form mm:ss.ff to a time in seconds
+// To make things complicated, it also parses mm.ss.ff which can make typing
+// in times easier on a phone.
+function parseRaceTime( raceTimeStr )
+{
+	// Count the number of .s
+	var numDots = 0;
+	for( var i = 0; i < raceTimeStr.length; ++i )
+	{
+		if( raceTimeStr[i] == '.' )
+		{
+			++numDots;
+		}
+	}
+
+	if( numDots > 1 )
+	{
+		// Text has been entered in the mm.ss.ff format
+		var fields = raceTimeStr.split( "." );
+		if( fields.length == 3 )
+		{
+			// mm.ss.ff
+			return (parseInt( fields[0] ) * 60) + parseInt( fields[1] ) + parseFloat( '0.' + fields[2] );
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		// Normal formatting
+		var fields = raceTimeStr.split( ":" );
+		if( fields.length > 2 )
+		{
+			// Unlikely
+			return 0;
+		}
+		else if( fields.length == 2 )
+		{
+			return (parseFloat( fields[0] ) * 60) + parseFloat( fields[1] );
+		}
+		else
+		{
+			return parseFloat( fields[0] );
+		}
+	}
+
+}
+
 // Parse a date of the form dd/mm/yyyy
 function parseDate( dateStr )
 {
 	var dateFields = dateStr.split("/");
 	return new Date( dateFields[2], dateFields[1] - 1, dateFields[0] );
 }
+
+
+// When the user navigates the history, re-parse the URL
+AddListener( "onPopState", readUrlIntoOptions );
