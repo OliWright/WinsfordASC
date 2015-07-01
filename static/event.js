@@ -98,13 +98,60 @@ var Event = function( code, distance, stroke, turnFactor, course )
 		}
 		else
 		{
+//
+// This is taken from https://www.swimmingresults.org/EqvtShare/algorithm.php which tries
+// and fails to describe the ASA conversion algorithm.
+//
+//    Converted Time  = T50 * PoolMeasure – TurnVal * (NumTurnPH – 1)
+// Where
+//    T50             = Time in a 50m pool
+//    PoolMeasure     = Ratio of race distance compared to equivalent distance in a 50m pool.
+//                      This is used to convert between events in non-standard length pools.
+//    TurnVal         = Time per turn. The time in seconds attributed to execution of a single turn.
+//                    = TurnFactor / T50
+//    NumTurnPH       = Number of turns per 100m in the length of pool we're converting to.
+//
+// So far so good.   Unfortunately, reading through the document and trying to follow it,
+// we realise there are mistakes and contradictions...
+//    (Switching no to lowerCamelCase naming to match my coding style)
+//
+// turnVal is supposed to be the time [gained] per turn.  But the turnFactor values provided
+// in the table look to be normalised per 100m, so it should be....
+//    timeGainPerTurn = (raceDistance / 100) * turnFactor / t50
+// This is what is used later in the document anyway, and the results match the tables.
+//
+// If NumTurnsPH is supposed to be the number of turns per 100m in the pool we're converting
+// to, then you'd think reasonably that the value would be 4.  (If you swam indefinitely
+// then every 100m you'd make 4 turns).
+// But actually it should be the number of turns in a 100m race in the pool we're converting
+// to, which is 3.
+// But more fundamentally, we're actually interested in the number of *additional* turns
+// made in a race, compared to the same race in a 50m pool.
+//    numExtraTurns25 = The number of additional turns in a 25m pool versus the same race in
+//                      a 50m pool
+//                    = raceDistance / 50         (Think about it)
+//
+// So this is the actual conversion from a 50m time to a 25m time.
+//                t25 = t50 - (timeGainPerTurn * numExtraTurns25)
+//
+// This makes a lot more sense.
+// Now for some simplifications...
+//
+// Expanding out
+//                t25 = t50 - (((raceDistance / 100) * turnFactor / t50) * (raceDistance / 50))
+//                    = t50 - (raceDistance^2 * turnFactor / t50
+
+			
 			var turnVal = (this.distance / 100) * this.turnFactor / raceTime;
 			var numExtraTurnSC = this.distance / 50;
+			
 			if( this.course.code == longCourse.code )
 			{
 				// Convert long course to short course
-				
-				return raceTime - (turnVal * numExtraTurnSC);
+				var numTurnPH = 4;
+				turnVal = this.turnFactor / raceTime;
+				return raceTime - ((this.distance / 100) * (turnVal * (numTurnPH-1)));
+				//return raceTime - (turnVal * numExtraTurnSC);
 			}
 			else
 			{
