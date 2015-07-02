@@ -40,7 +40,7 @@
 	<article>
 		<h2>Race Details</h2>
 		<p>Enter a time using either of these two widgets. Which one you use is down to personal preference. The first one lets you type in a time, while the second one might use spinny things on whatever device you have.</p>
-		<label>Enter Text: <input  id="input_time_text" value="0:0.0" onchange="TimeTextChanged()" size="7"/></label><br/>
+		<label>Enter Text: <input  id="input_time_text" value="" onchange="TimeTextChanged()" size="7"/></label><br/>
 		<label>Or Select Time: <input type="time" step="0.01" min="00:00:00.000" max="00:40:00.000" value="00:00:00.000" id="input_time" onchange="TimeChanged()" onfocusout="UpdateURL()"/></label><br/>
 		<label>Event: <select id="event_select" name="event" onchange="EventOrModeChanged()">
 			<option value="0">50 Free</option>

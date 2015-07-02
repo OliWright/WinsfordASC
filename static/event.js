@@ -2,6 +2,7 @@
 //   event.js
 //  Provides the Event class, which encapsulates a particular
 //  swimming event (e.g. 50m FreeStyle Long Course)
+//  Also provides methods for converting race times between long and short course.
 //
 // Copyright (C) 2014 Oliver Wright
 //    oli.wright.github@gmail.com
@@ -19,6 +20,74 @@
 // You should have received a copy of the GNU General Public License along
 // with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
+
+
+// Notes on the conversion of swim times between 25m and 50m pools
+//
+// This is taken from https://www.swimmingresults.org/EqvtShare/algorithm.php which tries
+// and fails to describe the ASA conversion algorithm.
+//
+//    Converted Time  = T50 * PoolMeasure – TurnVal * (NumTurnPH – 1)
+// Where
+//    T50             = Time in a 50m pool
+//    PoolMeasure     = Ratio of race distance compared to equivalent distance in a 50m pool.
+//                      This is used to convert between events in non-standard length pools.
+//                      For our purposes we're only interested in converting between 25m and
+//                      50m pools, so there is no difference in the race distance, so we can
+//                      take this as 1 and so effectively ignore it.
+//    TurnVal         = Time per turn. The time in seconds attributed to execution of a single turn.
+//                    = TurnFactor / T50
+//    NumTurnPH       = Number of turns per 100m in the length of pool we're converting to.
+//
+// So far so good.   Unfortunately, reading through the document and trying to follow it,
+// we realise there are mistakes and contradictions...
+//    (Switching now to lowerCamelCase naming to match my coding style)
+//
+// turnVal is supposed to be the time [gained] per turn.  But the turnFactor values provided
+// in the table look to be normalised per 100m, so it should be....
+//    timeGainPerTurn = (raceDistance / 100) * turnFactor / t50
+// This is what is used later in the document anyway, and the results match the tables.
+//
+// If NumTurnsPH is supposed to be the number of turns per 100m in the pool we're converting
+// to, then you'd think reasonably that the value would be 4 for a 25m pool.  (If you swam
+// indefinitely then every 100m you'd make 4 turns).
+// But actually it should be the number of turns in a 100m *race* in the pool we're converting
+// to, which is 3 for a 25m pool.
+// But more fundamentally, we're actually interested in the number of *additional* turns
+// made over the whole race, compared to the same race in a 50m pool.
+//    numExtraTurns25 = The number of additional turns in a 25m pool versus the same race in
+//                      a 50m pool
+//                    = raceDistance / 50         (Think about it)
+//
+// So this is the actual conversion from a 50m time to a 25m time.
+//                t25 = t50 - (timeGainPerTurn * numExtraTurns25)
+//
+// This makes a lot more sense.
+//
+// Expanding and re-arranging...
+//                t25 = t50 - (((raceDistance / 100) * turnFactor / t50) * (raceDistance / 50))
+//                    = t50 - (raceDistance^2 * turnFactor * (1/5000) / t50)
+//
+// That's straight-forward then to convert from 50m to 25m.  When we try to re-arrange to
+// convert from 25m to 50m we realise it's a quadratic...
+//
+//                t25 = t50 - (raceDistance^2 * turnFactor * (1/5000) / t50)
+//        (t25 * t50) = t50^2 - (raceDistance^2 * turnFactor * (1/5000))
+//                  0 = t50^2 - (t25 * t50) - (raceDistance^2 * turnFactor * (1/5000))
+//
+// Remembering to solve a quadratic of the form    a * x^2 + b * x + c = 0
+//                                       we use    x = (-b +- sqrt(b^2 - 4 * a * c)) / (2 * a)
+// For our quadratic
+//                  a = 1
+//                  b = -t25
+//                  c = -(raceDistance^2 * turnFactor * (1/5000))
+// so
+//                t50 = (-b + sqrt(b^2 - 4 * a * c)) / (2 * a)
+//                          ^--------------the solution we want has the '+' here.
+//                    = (-b + sqrt(b^2 - 4 * c)) / 2
+//                    = (t25 + sqrt(t25^2 - 4 * c)) / 2
+//                    = (t25 + sqrt(t25^2 + (raceDistance^2 * turnFactor * (4/5000)))) / 2
+
 
 var Stroke = function( code, shortName, longName )
 {
@@ -98,27 +167,19 @@ var Event = function( code, distance, stroke, turnFactor, course )
 		}
 		else
 		{
-			var turnVal = (this.distance / 100) * this.turnFactor / raceTime;
-			var numExtraTurnSC = this.distance / 50;
+			// See large comment block at the top of this file for an explanation
+			// of how the conversions are worked out.
 			if( this.course.code == longCourse.code )
 			{
 				// Convert long course to short course
-				
-				return raceTime - (turnVal * numExtraTurnSC);
+				// t25 = t50 - (raceDistance^2 * turnFactor * (1/5000) / t50)
+				return raceTime - (this.distance * this.distance * this.turnFactor * 0.0002 / raceTime );
 			}
 			else
 			{
 				// Convert short course to long course
-				// y = x - d.d.tf/100.50.x
-				// yx = x2 - d2.tf/5000
-				// yx - x2 = -d2.tf/5000
-				// x2 - yx - d2.tf/5000 = 0
-				// From quadratic... x = (-b +- sqrt(b2 -4ac)) / 2a
-				// a = 1,   b = -y (short course time),   c = -d2.tf/5000
-				var b = -raceTime;
-				var c = this.distance * this.distance * this.turnFactor / -5000;
-				return (-b + Math.sqrt( (b * b) - (4 * c) )) / 2;
-				//return raceTime + (turnVal * numExtraTurnSC);
+				// t50 = (t25 + sqrt(t25^2 + (raceDistance^2 * turnFactor * (4/5000)))) / 2
+				return (raceTime + Math.sqrt( (raceTime * raceTime) + (this.distance * this.distance * this.turnFactor * 0.0008))) * 0.5;
 			}
 		}
 	}
