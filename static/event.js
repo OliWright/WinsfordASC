@@ -139,8 +139,13 @@ var Event = function( code, distance, stroke, turnFactor, course )
 //
 // Expanding out
 //                t25 = t50 - (((raceDistance / 100) * turnFactor / t50) * (raceDistance / 50))
-//                    = t50 - (raceDistance^2 * turnFactor / t50
-
+//                    = t50 - (raceDistance^2 * turnFactor * (1/5000) / t50)
+//
+// That's straight-forward then to convert from 50m to 25m.  When we try to re-arrange to
+// convert from 25m to 50m we realise it's a quadratic...
+//
+//        (t25 * t50) = t50^2 - (raceDistance^2 * turnFactor * (1/5000))
+//                  0 = t50^2 - (t25 * t50) - (raceDistance^2 * turnFactor * (1/5000))
 			
 			var turnVal = (this.distance / 100) * this.turnFactor / raceTime;
 			var numExtraTurnSC = this.distance / 50;
