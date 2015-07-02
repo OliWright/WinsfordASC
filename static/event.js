@@ -2,6 +2,7 @@
 //   event.js
 //  Provides the Event class, which encapsulates a particular
 //  swimming event (e.g. 50m FreeStyle Long Course)
+//  Also provides methods for converting race times between long and short course.
 //
 // Copyright (C) 2014 Oliver Wright
 //    oli.wright.github@gmail.com
