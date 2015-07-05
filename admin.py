@@ -33,6 +33,7 @@ import helpers
 from table_parser import TableRows
 
 from swimmer import Swimmer
+from swimmer_cat1 import SwimmerCat1
 from swim import Swim
 from swim import scrape_swims
 from swim import scrape_personal_bests
@@ -41,6 +42,7 @@ from event import short_course_events
 from event import long_course_events
 from swimmer_parser import scrape_swimmer
 from swimmer_parser import scrape_swimmers
+from swimmer_parser import check_swimmer_upgrade
 from static_data import StaticData
 
 # Helper to scrape swimmingresults.org for ALL recorded swims for a particular
@@ -198,6 +200,25 @@ class UpdateSwimmerList(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write( "Updated swimmer list" )
 
+class CheckSwimmerUpgrade(webapp2.RequestHandler):
+  def post(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    asa_numbers = self.request.get_all('asa_number')
+    if len( asa_numbers ) == 0:
+      self.response.out.write( "No swimmers specified" )
+    for asa_number in asa_numbers:
+      check_swimmer_upgrade( "Winsford", int(asa_number), self.response )
+    
+class QueueCheckAllSwimmerUpgrades(webapp2.RequestHandler):
+  def post(self):
+    swimmers = SwimmerCat1.query_club( "Winsford" );
+    self.response.headers['Content-Type'] = 'text/plain'
+    for swimmer in swimmers:
+      asa_number = str(swimmer.asa_number)
+      logging.info( "Queueing upgrade check for " + swimmer.full_name() )
+      self.response.out.write( "Queueing  upgrade check for " + swimmer.full_name() + "\n" )
+      taskqueue.add(url='/admin/check_for_swimmer_upgrade', params={'asa_number': asa_number})
+    
 class Test(webapp2.RequestHandler):
   def post(self):
     swimmer = Swimmer.get( "Winsford", 892569 )
@@ -220,6 +241,8 @@ app = webapp2.WSGIApplication([
   ('/admin/queue_update_all_swims', QueueUpdateAllSwimsForAllSwimmers),
   ('/admin/queue_update_all_personal_bests', QueueUpdatePersonalBestsForAllSwimmers),
   ('/admin/update_swimmer_list', UpdateSwimmerList),
+  ('/admin/queue_check_for_all_swimmer_upgrades', QueueCheckAllSwimmerUpgrades),
+  ('/admin/check_for_swimmer_upgrade', CheckSwimmerUpgrade),
   ('/admin/test', Test),
 ])
 
