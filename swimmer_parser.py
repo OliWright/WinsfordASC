@@ -92,6 +92,10 @@ def _parse_swimmer( swimmer_page_text ):
   # Most of the data that we're interested in has a heading table cell immediately followed by the value
   # so we use a helper function _get_horizontal_table_field to do most of the parsing
 
+  full_name = _get_horizontal_table_field( root, "Name" )
+  if full_name is None:
+    return
+  
   # Check the date of birth first. If they're Cat1, then there'll be no DOB, so we're not interested.
   date_of_birth = _get_horizontal_table_field( root, "Date of Birth" )
   if date_of_birth is not None:
@@ -99,7 +103,6 @@ def _parse_swimmer( swimmer_page_text ):
 
   gender = _get_horizontal_table_field( root, "Gender" )
   cat = _get_horizontal_table_field( root, "Category" )
-  full_name = _get_horizontal_table_field( root, "Name" )
   return ParsedSwimmerData( cat, gender, date_of_birth, full_name )
   
 # Go to swimmingresults.org to get information for this swimmer and add it to our database
@@ -114,7 +117,8 @@ def scrape_swimmer( club, asa_number, response, first_name=None, last_name=None,
     extra_swimmer_data = _parse_swimmer( page )
     #done_one = True
     if extra_swimmer_data is None:
-      response.out.write( "Error scraping " );
+      response.out.write( "Error scraping " )
+      logging.info( 'Error attempting to scrape swimmer data from "' + url + '"' )
     else:
       if first_name is None:
         first_name = extra_swimmer_data.first_name
@@ -145,7 +149,12 @@ def check_swimmer_upgrade( club, asa_number, response ):
     extra_swimmer_data = _parse_swimmer( page )
     #done_one = True
     if extra_swimmer_data is None:
-      response.out.write( "Error scraping " );
+      logging.info( 'Error attempting to scrape swimmer data from "' + url + '", presume no longer a member.' )
+      # Remove their Cat1 entry
+      swimmer = SwimmerCat1.get( "Winsford", asa_number )
+      if swimmer is not None:
+        logging.info( "Deleting Cat1 entry for " + first_name + " " + last_name + " " + str( asa_number ) )
+        swimmer.key.delete()
     else:
       first_name = extra_swimmer_data.first_name
       last_name = extra_swimmer_data.last_name
@@ -155,8 +164,6 @@ def check_swimmer_upgrade( club, asa_number, response ):
         # Remove their Cat1 entry
         swimmer = SwimmerCat1.get( "Winsford", asa_number )
         if swimmer is not None:
-          # This seems a crazy way to delete an entity, but I can't
-          # find anything better.  swimmer.key.delete() doesn't work.
           logging.info( "Deleting Cat1 entry for " + first_name + " " + last_name + " " + str( asa_number ) )
           swimmer.key.delete()
         else:
