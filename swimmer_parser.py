@@ -153,7 +153,7 @@ def check_swimmer_upgrade( club, asa_number, response ):
       # Remove their Cat1 entry
       swimmer = SwimmerCat1.get( "Winsford", asa_number )
       if swimmer is not None:
-        logging.info( "Deleting Cat1 entry for " + first_name + " " + last_name + " " + str( asa_number ) )
+        logging.info( "Deleting Cat1 entry for " + swimmer.full_name() + " " + str( asa_number ) )
         swimmer.key.delete()
     else:
       first_name = extra_swimmer_data.first_name
