@@ -30,6 +30,7 @@ from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 
 import helpers
+import re
 from table_parser import TableRows
 
 from swimmer import Swimmer
@@ -221,15 +222,22 @@ class QueueCheckAllSwimmerUpgrades(webapp2.RequestHandler):
     
 class Test(webapp2.RequestHandler):
   def post(self):
-    swimmer = Swimmer.get( "Winsford", 892569 )
-    event = short_course_events[3]
-    swim = Swim.fetch_pb( swimmer, event )
-    key_str = swim.create_swim_key_str()
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write( key_str + "\n" )
-    swim = Swim.get_from_key_str( key_str )
-    if swim is not None:
-      self.response.out.write( "Hoorah" + str( swim.key.id ) + "\n" )
+    full_name = "Gracie  (Gracie) Griffin"
+    full_name = re.sub(' +',' ',full_name)
+    name_tokens = full_name.split( " " )
+    len_name_tokens = len( name_tokens )
+    if len_name_tokens == 2:
+      self.first_name = name_tokens[0]
+      self.last_name = name_tokens[1]
+      self.nick_name = self.first_name
+    elif len_name_tokens == 3:
+      self.first_name = name_tokens[0]
+      self.nick_name = name_tokens[1][1:len(name_tokens[1])-2]
+      self.last_name = name_tokens[2]
+    else:
+      # Well this is awkward
+      logging.error( "Failed to parse swimmer's full name: " + full_name )
+    logging.info( "Parsed " + self.first_name + ", " + self.last_name + ", " + self.nick_name )
       
     
 app = webapp2.WSGIApplication([
