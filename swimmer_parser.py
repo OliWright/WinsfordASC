@@ -39,7 +39,7 @@ class ParsedSwimmerData():
     self.date_of_birth = date_of_birth
     
     # full_name is of the form FirstName (KnownAs) LastName
-    full_name = re.sub(' +',' ',full_name) // Remove the duplicate spaces that sometimes appear on the ASA site
+    full_name = re.sub(' +',' ',full_name) # Remove the duplicate spaces that sometimes appear on the ASA site
     name_tokens = full_name.split( " " )
     len_name_tokens = len( name_tokens )
     if len_name_tokens == 2:
