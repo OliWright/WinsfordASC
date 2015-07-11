@@ -103,6 +103,7 @@ function eventSelected( stroke, distance )
 	extraContentElement.scrollIntoView();
 
 	var request = new XMLHttpRequest();
+	var swimmer = selectedSwimmersList[0];
 
 	// Asynchronous onload function that's called when swims are returned from the server
 	request.onload = function(e)
@@ -131,10 +132,10 @@ function eventSelected( stroke, distance )
 		html = '<article><h2>' + eventName + ' History</h2>'
 		html += createSwimHistoryTable( swims );
 		html += '</article>';
-		html += '<article class="Canvas"><h2>Progress</h2><div id="progressGraphLocation"/></article>';
+		html += '<article class="Canvas"><div id="progressGraphLocation"/></article>';
 		extraContentElement.innerHTML = html;
 		extraContentElement.scrollIntoView();
-		createProgressGraph( swims );
+		createProgressGraph( swimmer, swims );
 	}
 
 	request.onerror = function(e)
@@ -147,7 +148,7 @@ function eventSelected( stroke, distance )
 		extraContentElement.scrollIntoView();
 	}
 	
-	var url = "/swim_history?asa_number=" + selectedSwimmersList[0].asa_number + "&stroke_code=" + stroke.code + "&distance=" + distance;
+	var url = "/swim_history?asa_number=" + swimmer.asa_number + "&stroke_code=" + stroke.code + "&distance=" + distance;
 	request.open( "GET", url, true );
 	request.send();
 }

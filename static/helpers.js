@@ -110,7 +110,7 @@ function parseRaceTime( raceTimeStr )
 function parseDate( dateStr )
 {
 	var dateFields = dateStr.split("/");
-	return new Date( dateFields[2], dateFields[1] - 1, dateFields[0] );
+	return new Date( parseInt( dateFields[2] ), parseInt( dateFields[1] ) - 1, parseInt( dateFields[0] ) );
 }
 
 

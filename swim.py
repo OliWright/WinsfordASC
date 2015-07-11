@@ -337,7 +337,7 @@ def scrape_swims( swimmer, event, output ):
   page = helpers.FetchUrl( url )
 
   if page is None:
-    loggin.error( "Expected page text but got none." )
+    logging.error( "Expected page text but got none." )
     return 503
     
   # The ASA individual best times page includes the same information in two tables.
