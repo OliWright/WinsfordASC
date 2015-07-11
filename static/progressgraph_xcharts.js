@@ -19,31 +19,33 @@
 // with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
 
-// Canvas draw method for the progress graph
-function drawProgressGraph( timestamp )
-{
-	var ctx = this.ctx;
-	ctx.globalCompositeOperation = 'destination-over';
-	ctx.clearRect( 0, 0, this.width, this.height );
-	ctx.strokeStyle="#FF0000";
-	ctx.strokeRect( 0, 0, this.width, this.height );
-	// ctx.fillStyle = "rgb(200,0,0)";
-	// ctx.fillRect (10, 10, 55, 50);
-
-	var halfBlockWidth = 15;
-	var normX = Math.sin( timestamp * 0.001 );
-	var x = (normX * (this.halfWidth - halfBlockWidth)) + this.halfWidth - halfBlockWidth;
-	ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-	ctx.fillRect( x, 30, halfBlockWidth * 2, halfBlockWidth * 2 );
-}
-
 function createProgressGraph( swimmer, swims )
 {
 	var containerElement = document.getElementById( "progressGraphLocation" );
 	if( containerElement && (swims.length > 1) )
 	{
+		containerElement.innerHTML = '<figure style="width: 400px; height: 300px;" id="progressGraph"></figure>'
+	
+		var data = {
+		  "xScale": "time",
+		  "yScale": "linear",
+		  "type": "line",
+		  "main": [
+			{
+			  "className": ".pizza",
+			  "data": []
+			}
+		  ]
+		};
+		var opts = {
+		  "dataFormatX": function (x) { return d3.time.format('%Y-%m-%d').parse(x); },
+		  "tickFormatX": function (x) { return d3.time.format('%m/%Y')(x); }
+		};
+	
+		var dataPoints = data["main"][0]["data"];
+	
 		// Create a canvas element for the progress graph
-		var graph = new Canvas( containerElement, 320, 1024, 16 / 9, drawProgressGraph );
+		//var graph = new Canvas( containerElement, 320, 1024, 16 / 9, drawProgressGraph );
 		
 		var startDate = swims[0].date;
 		var endDate = swims[ swims.length - 1 ].date;
@@ -51,7 +53,6 @@ function createProgressGraph( swimmer, swims )
 		var slowest = fastest;
 		
 		// Make the data points
-		var dataPoints = [];
 		for( var i = 0; i < swims.length; i++ )
 		{
 			var swim = swims[i];
@@ -63,20 +64,14 @@ function createProgressGraph( swimmer, swims )
 			{
 				slowest = swim.raceTime;
 			}
-			dataPoints.push( new DataPoint( swim.date, swim.raceTime ) );
+		//		  "x": "2012-11-05",
+			var dateString = swim.date.getFullYear().toString() + "-" + (swim.date.getMonth() + 1).toString() + "-" + swim.date.getDate().toString()
+			var dataPoint = { "x": dateString, "y": swim.raceTime }
+			dataPoints.push( dataPoint );
 		}
 		var raceTimeAxisMin = Math.floor( fastest * 0.2 ) * 5;
 		var raceTimeAxisMax = Math.ceil( slowest * 0.2 ) * 5;
 		
-		// Make the canvas a graph.
-		// Hmm, not sure if this is the best way to structure this.
-		// This means the canvas *is* a graph.  What if we want multiple
-		// graphs in one canvas?
-		// Actually I think that's ok, we composite canvases in that case
-		// which is the preferred way to do it.
-		var verticalAxis = new Axis( raceTimeAxisMin, raceTimeAxisMax, 5, raceTimeToString );
-		var horizontalAxis = new DateAxis( startDate, endDate );
-		graph.createGraph( horizontalAxis, verticalAxis );
-		graph.addDataSeries( new DataSeries( dataPoints ) );
+		var myChart = new xChart('line', data, '#progressGraph', opts);
 	}
 }
