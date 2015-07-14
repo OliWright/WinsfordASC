@@ -36,6 +36,12 @@ class Cell():
 
   def __int__(self):
     return int( self.text )
+    
+  def __bool__(self):
+    if self.text is None:
+      return False
+    else:
+      return True
 
 def ReadTableCell( element ):
   # The contents of the cell can be either plain text

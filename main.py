@@ -53,7 +53,7 @@ class RequestHandler( webapp2.RequestHandler ):
 
 class PersonalBests(RequestHandler):
   def get(self):
-    asa_numbers = self.request.get('asa_numbers', allow_multiple=True)
+    asa_numbers = self.request.get_all('asa_numbers')
     num_swimmers = len( asa_numbers )
     self.response.headers['Content-Type'] = 'text/plain'
     if num_swimmers == 0:

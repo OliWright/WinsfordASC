@@ -78,7 +78,7 @@ def ParseDateOfBirth( date_of_birth ):
 
 def FetchUrl( url ):
   try:
-    result = urlfetch.fetch( url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36"}, validate_certificate=False )
+    result = urlfetch.fetch( url, headers={'User-Agent' : "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36"}, deadline=20, validate_certificate=False )
     return result.content
   except urlfetch.InvalidURLError:
     logging.error( "InvalidURLError fetching URL: " + url )
