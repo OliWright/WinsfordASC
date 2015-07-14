@@ -48,10 +48,15 @@ from static_data import StaticData
 
 # Helper to scrape swimmingresults.org for ALL recorded swims for a particular
 # swimmer in the events specified.
+def UpdateSwimsForEvent( swimmer, event, output ):
+  logging.info( "Looking for " + event.to_string() + " swims for " + swimmer.full_name() )
+  ret = scrape_swims( swimmer, event, output )
+  if ret is not None:
+    # Error
+    return ret
 def UpdateSwimsForEvents( swimmer, events, output ):
   for event in events:
-    logging.info( event.to_string() )
-    ret = scrape_swims( swimmer, event, output )
+    ret = UpdateSwimsForEvent( swimmer, event, output )
     if ret is not None:
       # Error
       return ret
@@ -83,16 +88,38 @@ class UpdateSwims(webapp2.RequestHandler):
   def post(self):
     self.response.headers['Content-Type'] = 'text/plain'
     asa_numbers = self.request.get_all('asa_number')
+    course_code = self.request.get('course')
+    if course_code is None:
+      logging.error( "Missing course code in swim update request" )
+      self.response.set_status( 400 )
+      return
+    event_code = self.request.get('event')
+    event = None
+    if event_code is not None:
+      event_code = int( event_code )
+      if course_code == "S":
+        if (event_code >= len( short_course_events )) or (event_code < 0):
+          logging.error( "Bad event code in swim update request" )
+          self.response.set_status( 400 )
+          return
+        event = short_course_events[ event_code ]
+      else:
+        if (event_code >= len( long_course_events )) or (event_code < 0):
+          logging.error( "Bad event code in swim update request" )
+          self.response.set_status( 400 )
+          return
+        event = long_course_events[ event_code ]
+        
     for asa_number in asa_numbers:
       swimmer = Swimmer.get( "Winsford", int( asa_number ) )
       swimmer_name = swimmer.full_name()
-      logging.info( "Updating swims for " + swimmer_name )
-      ret = UpdateSwimsForEvents( swimmer, short_course_events, self.response.out )
-      if ret is not None:
-        # Error
-        self.response.set_status( ret )
-        return
-      ret = UpdateSwimsForEvents( swimmer, long_course_events, self.response.out )
+      if event is None:
+        if course_code == "S":
+          ret = UpdateSwimsForEvents( swimmer, short_course_events, self.response.out )
+        else:
+          ret = UpdateSwimsForEvents( swimmer, long_course_events, self.response.out )
+      else:
+        ret = UpdateSwimsForEvent( swimmer, event, self.response.out )
       if ret is not None:
         # Error
         self.response.set_status( ret )
@@ -100,6 +127,15 @@ class UpdateSwims(webapp2.RequestHandler):
 
 # Adds a task to the task queue to scrapes swimmingresults.org for ALL recorded
 # swims for a particular swimmer in ALL events
+def QueueUpdateSwimsForSwimmer( asa_number ):
+  logging.info( "Queueing update of swims for " + asa_number )
+  num_events = len( short_course_events )
+  for event_code in range( 0, num_events ):
+    taskqueue.add(url='/admin/update_swims', params={'asa_number': asa_number, 'course': 's', 'event': str(event_code) })
+  num_events = len( long_course_events )
+  for event_code in range( 0, num_events ):
+    taskqueue.add(url='/admin/update_swims', params={'asa_number': asa_number, 'course': 'l', 'event': str(event_code) })
+
 class QueueUpdateSwims(webapp2.RequestHandler):
   def post(self):
     self.response.headers['Content-Type'] = 'text/plain'
@@ -107,14 +143,14 @@ class QueueUpdateSwims(webapp2.RequestHandler):
     # Queue explicit updates
     asa_numbers = self.request.get_all('asa_number')
     for asa_number in asa_numbers:
-      self.response.out.write( "Queueing update of swims for " + asa_number + "\n" );
-      taskqueue.add(url='/admin/update_swims', params={'asa_number': asa_number})
+      self.response.out.write( "Queueing update of swims for " + asa_number + "\n" )
+      QueueUpdateSwimsForSwimmer( asa_number )
 
     # Queue name searched updates
     swimmers = GetNameMatchedSwimmers( self.request.get('name_search') )
     for swimmer in swimmers:
-      self.response.out.write( "Queueing update of swims for " + swimmer.full_name() + "\n" );
-      taskqueue.add(url='/admin/update_swims', params={'asa_number': str( swimmer.asa_number )})
+      self.response.out.write( "Queueing update of swims for " + swimmer.full_name() + "\n" )
+      QueueUpdateSwimsForSwimmer( str( swimmer.asa_number ) )
     
 # Scrapes swimmingresults.org for PB swims for a particular swimmer in ALL events
 class UpdatePersonalBests(webapp2.RequestHandler):
@@ -151,9 +187,7 @@ class QueueUpdateAllSwimsForAllSwimmers(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'text/plain'
     for swimmer in swimmers:
       asa_number = str(swimmer.asa_number)
-      logging.info( "Queueing update of swims for " + swimmer.full_name() )
-      self.response.out.write( "Queueing update of swims for " + swimmer.full_name() + "\n" )
-      taskqueue.add(url='/admin/update_swims', params={'asa_number': asa_number})
+      QueueUpdateSwimsForSwimmer( asa_number )
 
 class QueueUpdatePersonalBestsForAllSwimmers(webapp2.RequestHandler):
   def post(self):

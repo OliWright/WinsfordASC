@@ -191,7 +191,6 @@ def check_swimmer_upgrade( club, asa_number, response ):
 swimmer_list_headers_of_interest = ( "Member", "Family Name", "Given Name", "Known As", "Club" )
 
 def _parse_swimmer_list( swimmer_list_page_text, club, response, force_update=False ):
-  logging.info( "Page Text:\n" + swimmer_list_page_text )
   tree = html.fromstring( swimmer_list_page_text )
   try:
     table = tree.get_element_by_id( "rankTable" )
@@ -203,11 +202,11 @@ def _parse_swimmer_list( swimmer_list_page_text, club, response, force_update=Fa
   swimmers = []
   for row in TableRows( table, swimmer_list_headers_of_interest ):
     asa_number = int( row[0] )
-    last_name = str( row[1] )
-    first_name = str( row[2] )
-    nick_name = str( row[3] )
     if row[4].text == club:
       # Validate the remaining fields are ok to use
+      last_name = row[1].text
+      first_name = row[2].text
+      nick_name = row[3].text
       valid = True
       if (asa_number is None):
         valid = false
@@ -237,7 +236,7 @@ def _parse_swimmer_list( swimmer_list_page_text, club, response, force_update=Fa
             full_name += " (" + nick_name + ") "
           response.out.write( full_name + " " + str(asa_number) + " not updated because they're already in the database.\n" )
     else:
-      response.out.write( first_name + " " + last_name + " (ASA Number: "  + str(asa_number) + ") not added because they're in the wrong club (" + row[4].text + ").\n" )
+      response.out.write( "ASA Number: "  + str(asa_number) + " not added because they're in the wrong club (" + row[4].text + ").\n" )
 
 def scrape_swimmers( club, family_name, response, force_update=False ):
   logging.info( "Fetching swimmers of family name: " + family_name )
