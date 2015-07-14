@@ -97,7 +97,7 @@ class UpdateSwims(webapp2.RequestHandler):
     event = None
     if event_code is not None:
       event_code = int( event_code )
-      if course_code == "S":
+      if course_code == "s":
         if (event_code >= len( short_course_events )) or (event_code < 0):
           logging.error( "Bad event code in swim update request" )
           self.response.set_status( 400 )
@@ -114,7 +114,7 @@ class UpdateSwims(webapp2.RequestHandler):
       swimmer = Swimmer.get( "Winsford", int( asa_number ) )
       swimmer_name = swimmer.full_name()
       if event is None:
-        if course_code == "S":
+        if course_code == "s":
           ret = UpdateSwimsForEvents( swimmer, short_course_events, self.response.out )
         else:
           ret = UpdateSwimsForEvents( swimmer, long_course_events, self.response.out )
