@@ -92,7 +92,7 @@ function createProgressGraph( swimmer, swims )
 					{
 						html += swims[swimIndex].date.toLocaleDateString() + ' ' + swims[swimIndex].meet + '<br/>'
 					}
-					html += 'Race Time: ' + raceTimeToString( this.y * 0.001 )
+					html += 'Race Time: ' + raceTimeToString( this.y )
 					return html
 				}
 			},
