@@ -1,6 +1,7 @@
 // Winsford ASC Google AppEngine App
-//   progress_graph.js
-//   Manages a Canvas showing a graph of a swimmer's progress.
+//   progressgraph_highcharts.js
+//   Swim progress graph using HighCharts
+//   http://www.highcharts.com/
 //
 // Copyright (C) 2014 Oliver Wright
 //    oli.wright.github@gmail.com
@@ -24,66 +25,44 @@ function createProgressGraph( swimmer, swims )
 	var containerElement = document.getElementById( "progressGraphLocation" );
 	if( containerElement && (swims.length > 1) )
 	{
-		containerElement.innerHTML = '<div id="progressGraph" style="width:100%; height:400px;"></div>'
-
-		var chartTitle = swimmer.getFullName() + ' ' + swims[0].event.distance + ' ' + swims[0].event.stroke.shortName + ' Progress'
+		// Insert another container div, using the Graph class, which contains
+		// some CSS voodoo for making the height a proportion of the width
+		containerElement.innerHTML = '<div id="progressGraph" class="Graph"></div>'
 		
-		var raceTimeDateTimeLabelFormats = {
-			millisecond:"%M:%S.%H",
-			second:"%M:%S.%H",
-			minute:"%M:%S.%H"
-		}		
-		
-		var chartDefinition = {
-			chart: {
+		// HighCharts chart definition
+		var chartDefinition =
+		{
+			chart:
+			{
 				renderTo: 'progressGraph',
-                zoomType: 'x'
+                zoomType: 'x',
+				backgroundColor: null, // Make the graph transparent
+				style:
+				{
+					fontFamily: '"Open Sans", sans-serif',
+					fontSize: '100%'
+				}
             },
-            title: {
-                text: chartTitle
+			// Orange first
+			colors: ['#E68A2E', '#7cb5ec', '#434348', '#90ed7d', '#f7a35c', '#8085e9', '#f15c80', '#e4d354', '#2b908f', '#f45b5b', '#91e8e1'],
+			title: null, // We put the title in the HTML, so the graph doesn't need to
+            xAxis: { type: 'datetime' },
+            yAxis:
+			{
+				// Data is race time in seconds
+                type: 'linear',
+				title: null,
+				labels:
+				{
+					// Display as race time
+					formatter: function()
+					{
+						return raceTimeToString( this.value )
+					}
+				}
             },
-            subtitle: {
-                text: document.ontouchstart === undefined ?
-                        'Click and drag in the plot area to zoom in' : 'Pinch the chart to zoom in'
-            },
-            xAxis: {
-                type: 'datetime'
-            },
-            yAxis: {
-                type: 'datetime',
-				dateTimeLabelFormats: raceTimeDateTimeLabelFormats,
-                title: {
-                    text: 'Race Time'
-                }
-            },
-            legend: {
-                enabled: false
-            },
+            legend: { enabled: false },
             plotOptions: {
-                area: {
-                    fillColor: {
-                        linearGradient: {
-                            x1: 0,
-                            y1: 0,
-                            x2: 0,
-                            y2: 1
-                        },
-                        stops: [
-                            [0, Highcharts.getOptions().colors[0]],
-                            [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
-                        ]
-                    },
-                    marker: {
-                        radius: 2
-                    },
-                    lineWidth: 1,
-                    states: {
-                        hover: {
-                            lineWidth: 1
-                        }
-                    },
-                    threshold: null
-                },
 				spline: {
 					marker: {
 						enabled: true
@@ -120,40 +99,22 @@ function createProgressGraph( swimmer, swims )
 
             series: [{
                 type: 'spline',
-                name: 'Race Time',
+                name: swimmer.getFullName(),
                 data: []
             }]
         }
-		var dataPoints = chartDefinition.series[0].data
 	
-		// Create a canvas element for the progress graph
-		//var graph = new Canvas( containerElement, 320, 1024, 16 / 9, drawProgressGraph );
-		
-		var startDate = swims[0].date;
-		var endDate = swims[ swims.length - 1 ].date;
-		var fastest = swims[0].raceTime;
-		var slowest = fastest;
-		
 		// Make the data points
+		var dataPoints = chartDefinition.series[0].data
 		for( var i = 0; i < swims.length; i++ )
 		{
 			var swim = swims[i];
-			if( swim.raceTime < fastest )
-			{
-				fastest = swim.raceTime;
-			}
-			if( swim.raceTime > slowest )
-			{
-				slowest = swim.raceTime;
-			}
-			//var dataPoint = [ Date.UTC( swim.date.getUTCFullYear(), swim.date.getUTCMonth(), swim.date.getUTCDate() ), swim.raceTime ]
 			var raceTime = swim.event.convertRaceTime( swim.raceTime, shortCourse )
-			var dataPoint = [ swim.date.getTime(), raceTime * 1000 ]
+			var dataPoint = [ swim.date.getTime(), raceTime ]
 			dataPoints.push( dataPoint );
 		}
-		var raceTimeAxisMin = Math.floor( fastest * 0.2 ) * 5;
-		var raceTimeAxisMax = Math.ceil( slowest * 0.2 ) * 5;
-		
+
+		// Create the chart
 		var chart1 = new Highcharts.Chart(chartDefinition)
 	}
 }
