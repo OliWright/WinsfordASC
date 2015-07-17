@@ -129,10 +129,10 @@ function eventSelected( stroke, distance )
 		swims.sort( compareSwimDates );		
 		
 		// List them
-		html = '<article><h2>' + eventName + ' History</h2>'
+		html = '<article><h2>' + eventName + ' Progress</h2><div class="GraphHolder" id="progressGraphLocation"/></article>';
+		html += '<article><h2>' + eventName + ' History</h2>'
 		html += createSwimHistoryTable( swims );
 		html += '</article>';
-		html += '<article class="Canvas"><div id="progressGraphLocation"/></article>';
 		extraContentElement.innerHTML = html;
 		extraContentElement.scrollIntoView();
 		createProgressGraph( swimmer, swims );
