@@ -191,23 +191,23 @@ table
 		// This behaves as a minimum width, so columns can still be larger to fit their content
 		width : 8em;
 	}
-	tr.Free
+	.Free
 	{
 		background-color: #EADDF8;
 	}
-	tr.Breast
+	.Breast
 	{
 		background-color: #D4E4E4;
 	}
-	tr.Fly
+	.Fly
 	{
 		background-color: #DCEEDC;
 	}
-	tr.Back
+	.Back
 	{
 		background-color: #EEE5CE;
 	}
-	tr.IM
+	.IM
 	{
 		background-color: #F1D6CD;
 	}
@@ -227,7 +227,7 @@ table
 	}
 	td.NotEligible
 	{
-		text-align:right;
+		//text-align:right;
 		text-decoration:line-through;
 	}
 	.event

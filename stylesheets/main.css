@@ -121,15 +121,15 @@ table {
     padding: 4px; }
   table th {
     width: 8em; }
-  table tr.Free {
+  table .Free {
     background-color: #EADDF8; }
-  table tr.Breast {
+  table .Breast {
     background-color: #D4E4E4; }
-  table tr.Fly {
+  table .Fly {
     background-color: #DCEEDC; }
-  table tr.Back {
+  table .Back {
     background-color: #EEE5CE; }
-  table tr.IM {
+  table .IM {
     background-color: #F1D6CD; }
   table tr.Invalid {
     background-color: #FF9393; }
@@ -138,7 +138,6 @@ table {
   table td.RaceTime {
     text-align: right; }
   table td.NotEligible {
-    text-align: right;
     text-decoration: line-through; }
   table a:link, table a:visited {
     text-decoration: none;

@@ -77,7 +77,7 @@ function makeFreestyleTable( candidates )
 	for( var i = 0; i < numCandidates; i++ )
 	{
 		swimmer = candidates[i];
-		table += "<tr><td>" + swimmer.first_name + " " + swimmer.last_name + '</td><td>' + swimmer.stroke_times[0] + '</td></tr>';
+		table += '<tr class="Free"><td>' + swimmer.first_name + " " + swimmer.last_name + '</td><td>' + raceTimeToString( swimmer.stroke_times[0] ) + '</td></tr>';
 	}
 	table += '</table>';
 	return table;
@@ -91,21 +91,21 @@ function makeBestImTable( bestCandidatesPerStroke )
 	}
 	else
 	{
-		var table = "<table><tr><th>Back</th><th>Breast</th><th>Fly</th><th>Free</th></tr>";
-		table += "<tr>";
+		var table = '<table><tr><th class="Back">Back</th><th class="Breast">Breast</th><th class="Fly">Fly</th><th class="Free">Free</th></tr>';
+		table += '<tr>';
 		for( var leg = 0; leg < 4; leg++ )
 		{
 			var stroke = imLegToStroke[ leg ];
-			table += "<td>";
+			table += '<td class="' + strokes[stroke].shortName + '">';
 			candidate = bestCandidatesPerStroke[stroke];
 			if( candidate !== undefined )
 			{
 				table += candidate.first_name + " " + candidate.last_name;
 				table += " " + raceTimeToString( candidate.stroke_times[stroke] );
 			}
-			table += "</td>";
+			table += '</td>';
 		}
-		table += "</tr></table>";
+		table += '</tr></table>';
 		return table;
 	}
 }
@@ -119,10 +119,10 @@ function setSwimmerStrokeEligibility( asa_number, stroke, eligible )
 
 function makeImCandidatesTable()
 {
-	var table = "<table><tr><th>Back</th><th>Breast</th><th>Fly</th><th>Free</th></tr>";
+	var table = '<table><tr><th class="Back">Back</th><th class="Breast">Breast</th><th class="Fly">Fly</th><th class="Free">Free</th></tr>';
 	for( rowIdx = 0; rowIdx < 8; rowIdx++ )
 	{
-		var row = "<tr>";
+		var row = '<tr>';
 		var anyInRow = false;
 		for( var leg = 0; leg < 4; leg++ )
 		{
@@ -130,18 +130,22 @@ function makeImCandidatesTable()
 			candidate = relayCandidatesPerStroke[stroke][rowIdx];
 			if( candidate === undefined )
 			{
-				row += "<td></td>";
+				row += '<td></td>';
 			}
 			else
 			{
 				row += '<td';
-				var makeEligible = "false";
+				var makeEligible = 'false';
 				var buttonChar = '&#x2717;'; // Unicode cross
 				if( !candidate.eligibility_per_stroke[stroke] )
 				{
-					makeEligible = "true";
+					makeEligible = 'true';
 					buttonChar = '&#x2713;' // Unicode tick
 					row += ' class="NotEligible"';
+				}
+				else
+				{
+					row += ' class="' + strokes[stroke].shortName + '"';
 				}
 				row += '>';
 				row += candidate.first_name + " " + candidate.last_name;
@@ -293,7 +297,9 @@ function updateCandidatesTable()
 	else
 	{
 		// Freestyle
+		html += '<article><h2>Candidates.</h2>';
 		html += makeFreestyleTable( relayCandidatesPerStroke[0] );
+		html += '</article>';
 	}
 	var candidatesElement = document.getElementById( "candidates" );
 	candidatesElement.innerHTML = html;
