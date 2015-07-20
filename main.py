@@ -32,6 +32,7 @@ from swim import Swim
 from swim import ScrapeSplits
 from event import short_course_events
 from event import long_course_events
+from event import Event
 from race_time import RaceTime
 from static_data import StaticData
 
@@ -42,10 +43,17 @@ from static_data import StaticData
 
 # If we find a club member listing, then the club property is likely to be "targetclub" like https://www.swimmingresults.org/clubofficers/officers_list.php?targetclub=FSSTESXQ
 # although that looks like it's hashed in some way.   Winsford's code is WINNCHRN
-    
-class PersonalBests(webapp2.RequestHandler):
+
+class RequestHandler( webapp2.RequestHandler ):
+  def check_credentials(self):
+    # Check for Cookie user id
+    user_id = self.request.cookies.get('user_id')
+    if user_id:
+      self.user = User.get( user_id )
+
+class PersonalBests(RequestHandler):
   def get(self):
-    asa_numbers = self.request.get('asa_numbers', allow_multiple=True)
+    asa_numbers = self.request.get_all('asa_numbers')
     num_swimmers = len( asa_numbers )
     self.response.headers['Content-Type'] = 'text/plain'
     if num_swimmers == 0:
@@ -62,24 +70,24 @@ class PersonalBests(webapp2.RequestHandler):
       def listEvents( events ):
         for event in events:
           self.response.out.write( event.to_string() )
-          # Write a comma separated list with the PB in seconds of each requested swimmer.
+          # Write a '^' separated list of PB swims of each requested swimmer.
           # Leave blank if the swimmer has no PB for this event.
           for swimmer in swimmers:
-            self.response.out.write(',')
+            self.response.out.write('^')
             swim = Swim.fetch_pb( swimmer, event )
             if swim is not None:
-              self.response.out.write( str( swim.race_time ) + "," + swim.meet + "," + swim.date.strftime( "%d/%m/%Y" ) + "," + swim.create_swim_key_str() )
+              self.response.out.write( str( swim )  )
           self.response.out.write( '\n' )
 
       listEvents( short_course_events )
       listEvents( long_course_events )
         
-class GetSwimmerList(webapp2.RequestHandler):
+class GetSwimmerList(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write( StaticData.get_swimmer_list() )
         
-class GetSwimDetails(webapp2.RequestHandler):
+class GetSwimDetails(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
     swim_key_str = self.request.get('swim')
@@ -99,8 +107,39 @@ class GetSwimDetails(webapp2.RequestHandler):
 
     self.response.out.write( str( swim ) )
 
+# Expects attributes for asa_number, stroke_id and distance in the URL
+# Returns a list of all swims.
+class GetSwimHistory(RequestHandler):
+  def get(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    asa_number_str = self.request.get('asa_number')
+    if asa_number_str == '':
+      self.response.out.write( "Missing asa_number" )
+      self.response.set_status( 400 )
+      return
+    stroke_code_str = self.request.get('stroke_code')
+    if stroke_code_str == '':
+      self.response.out.write( "Missing stroke_code" )
+      self.response.set_status( 400 )
+      return
+    distance_str = self.request.get('distance')
+    if distance_str == '':
+      self.response.out.write( "Missing distance" )
+      self.response.set_status( 400 )
+      return
+    asa_number = int(asa_number_str)
+    stroke_code = int(stroke_code_str)
+    distance = int(distance_str)
+    
+    swims = Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "S" ) )
+    swims.extend( Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "L" ) ) )
+    
+    for swim in swims:
+      self.response.out.write( str( swim ) + "\n" )
+    
 app = webapp2.WSGIApplication([
   ('/personal_bests', PersonalBests),
   ('/swimmer_list', GetSwimmerList),
   ('/swim_details', GetSwimDetails),
+  ('/swim_history', GetSwimHistory),
 ])

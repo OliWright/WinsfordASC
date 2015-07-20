@@ -19,12 +19,15 @@
 # with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
 
+from google.appengine.api import taskqueue
+
 from lxml import html
 from lxml import etree
 from table_parser import TableRows
 import StringIO
 import helpers
 import logging
+import re
 
 from swimmer import Swimmer
 from swimmer_cat1 import SwimmerCat1
@@ -36,6 +39,7 @@ class ParsedSwimmerData():
     self.date_of_birth = date_of_birth
     
     # full_name is of the form FirstName (KnownAs) LastName
+    full_name = re.sub(' +',' ',full_name) # Remove the duplicate spaces that sometimes appear on the ASA site
     name_tokens = full_name.split( " " )
     len_name_tokens = len( name_tokens )
     if len_name_tokens == 2:
@@ -54,19 +58,30 @@ class ParsedSwimmerData():
   # I know - that's a bit pants.
   def is_cat2(self):
     return self.date_of_birth is not None
+
+# Extract the text from an element.
+# This can handle cases where the text is either plain, or inside <b></b>
+# but nothing more complex than that yet (because we don't need to).
+def _get_element_text( element ):
+  if element.text is not None:
+    return element.text
+  return element.findtext( 'b' )
        
 # Scans a table looking for a label in a <td> element.
 # Returns the contents of the next <td>.
 def _get_horizontal_table_field( root, label ):
   for td in root.getiterator( tag="td" ):
-    if td.text.strip() == label:
+    text = _get_element_text( td )
+    # if text is not None:
+    #  logging.info( "TD: " + text )
+    if text is not None and text.strip() == label:
       # This td has the label that we're looking for.
       # The next sibling should contain the actual data
       value_td = td.getnext()
       if value_td is None:
         return
       else:
-        value = helpers.Trim( value_td.text )
+        value = helpers.Trim( _get_element_text( value_td ) )
         if (value is None) or (len(value) == 0):
           return
         return value
@@ -79,6 +94,10 @@ def _parse_swimmer( swimmer_page_text ):
   # Most of the data that we're interested in has a heading table cell immediately followed by the value
   # so we use a helper function _get_horizontal_table_field to do most of the parsing
 
+  full_name = _get_horizontal_table_field( root, "Name" )
+  if full_name is None:
+    return
+  
   # Check the date of birth first. If they're Cat1, then there'll be no DOB, so we're not interested.
   date_of_birth = _get_horizontal_table_field( root, "Date of Birth" )
   if date_of_birth is not None:
@@ -86,7 +105,6 @@ def _parse_swimmer( swimmer_page_text ):
 
   gender = _get_horizontal_table_field( root, "Gender" )
   cat = _get_horizontal_table_field( root, "Category" )
-  full_name = _get_horizontal_table_field( root, "Name" )
   return ParsedSwimmerData( cat, gender, date_of_birth, full_name )
   
 # Go to swimmingresults.org to get information for this swimmer and add it to our database
@@ -101,7 +119,8 @@ def scrape_swimmer( club, asa_number, response, first_name=None, last_name=None,
     extra_swimmer_data = _parse_swimmer( page )
     #done_one = True
     if extra_swimmer_data is None:
-      response.out.write( "Error scraping " );
+      response.out.write( "Error scraping " )
+      logging.info( 'Error attempting to scrape swimmer data from "' + url + '"' )
     else:
       if first_name is None:
         first_name = extra_swimmer_data.first_name
@@ -120,7 +139,52 @@ def scrape_swimmer( club, asa_number, response, first_name=None, last_name=None,
         swimmer = SwimmerCat1.create( asa_number, club, first_name, last_name )
         swimmer.put()
       response.out.write( "Updated " + extra_swimmer_data.cat + " " + extra_swimmer_data.gender + " swimmer " + swimmer.full_name() + ". ASA Number: " + str(asa_number) + "\n" )
-    
+
+def check_swimmer_upgrade( club, asa_number, response ):
+  url = "https://www.swimmingresults.org/membershipcheck/member_details.php?myiref=" + str(asa_number)
+  logging.info( "Attempting to scrape " + url );
+  page = helpers.FetchUrl( url )
+  if page is None:
+    response.set_status( 503 )
+    return
+  else:
+    extra_swimmer_data = _parse_swimmer( page )
+    #done_one = True
+    if extra_swimmer_data is None:
+      logging.info( 'Error attempting to scrape swimmer data from "' + url + '", presume no longer a member.' )
+      # Remove their Cat1 entry
+      swimmer = SwimmerCat1.get( "Winsford", asa_number )
+      if swimmer is not None:
+        logging.info( "Deleting Cat1 entry for " + swimmer.full_name() + " " + str( asa_number ) )
+        swimmer.key.delete()
+    else:
+      first_name = extra_swimmer_data.first_name
+      last_name = extra_swimmer_data.last_name
+      nick_name = extra_swimmer_data.nick_name
+      if extra_swimmer_data.is_cat2():
+        # Swimmer is now Cat2
+        # Remove their Cat1 entry
+        swimmer = SwimmerCat1.get( "Winsford", asa_number )
+        if swimmer is not None:
+          logging.info( "Deleting Cat1 entry for " + first_name + " " + last_name + " " + str( asa_number ) )
+          swimmer.key.delete()
+        else:
+          logging.info( "Failed to look-up Cat1 entry for " + str( asa_number ) )
+        # Add a new Cat1 entry
+        date_of_birth = extra_swimmer_data.date_of_birth
+        is_male = (extra_swimmer_data.gender[0:1] == "M")
+        swimmer = Swimmer.create( asa_number, club, first_name, last_name, nick_name, date_of_birth, is_male )
+        swimmer.put()
+        response.out.write( "Upgraded " + first_name + " " + last_name + " to Cat2 in database" )
+        logging.info( "Upgraded " + first_name + " " + last_name + " to Cat2 in database" )
+        # Queue a scrape of the swims for this swimmer
+        taskqueue.add(url='/admin/update_swims', params={'asa_number': str(asa_number)})
+
+      else:
+        # Still Cat1
+        response.out.write( "Not upgraded " + first_name + " " + last_name + " because still Cat1" )
+        logging.info( "Not upgraded " + first_name + " " + last_name + " because still Cat1" )
+      
   
 # The headers in a swimmer list table from https://www.swimmingresults.org/membershipcheck/member_details.php
 # that we're interested in parsing.  
@@ -138,11 +202,11 @@ def _parse_swimmer_list( swimmer_list_page_text, club, response, force_update=Fa
   swimmers = []
   for row in TableRows( table, swimmer_list_headers_of_interest ):
     asa_number = int( row[0] )
-    last_name = str( row[1] )
-    first_name = str( row[2] )
-    nick_name = str( row[3] )
     if row[4].text == club:
       # Validate the remaining fields are ok to use
+      last_name = row[1].text
+      first_name = row[2].text
+      nick_name = row[3].text
       valid = True
       if (asa_number is None):
         valid = false
@@ -172,7 +236,7 @@ def _parse_swimmer_list( swimmer_list_page_text, club, response, force_update=Fa
             full_name += " (" + nick_name + ") "
           response.out.write( full_name + " " + str(asa_number) + " not updated because they're already in the database.\n" )
     else:
-      response.out.write( first_name + " " + last_name + " (ASA Number: "  + str(asa_number) + ") not added because they're in the wrong club (" + row[4].text + ").\n" )
+      response.out.write( "ASA Number: "  + str(asa_number) + " not added because they're in the wrong club (" + row[4].text + ").\n" )
 
 def scrape_swimmers( club, family_name, response, force_update=False ):
   logging.info( "Fetching swimmers of family name: " + family_name )

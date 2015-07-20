@@ -22,7 +22,7 @@
 // All dates in Hy3 files are MMDDYYYY
 function parseHy3Date( hy3DateStr )
 {
-	return new Date( hy3DateStr.slice(4,8), hy3DateStr.slice(0,2), hy3DateStr.slice(2,4) );
+	return new Date( hy3DateStr.slice(4,8), hy3DateStr.slice(0,2) - 1, hy3DateStr.slice(2,4) );
 }
 
 // Class to encapsulate information about a swimmer from a HY3 file.

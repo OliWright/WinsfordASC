@@ -151,7 +151,7 @@ function addSwimmerToSelectedList( asa_number )
 			{
 				selectedSwimmersList.push( swimmers[i] );
 				repopulateSelectedSwimmers();
-				Broadcast( "SwimmerListChanged" );
+				Broadcast( "onSwimmerListChanged" );
 				break;
 			}
 		}
@@ -168,7 +168,7 @@ function removeSwimmerFromSelectedList( asa_number )
 		{
 			selectedSwimmersList.splice( j, 1 );
 			repopulateSelectedSwimmers();
-			Broadcast( "SwimmerListChanged" );
+			Broadcast( "onSwimmerListChanged" );
 			break;
 		}
 	}

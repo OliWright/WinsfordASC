@@ -2,8 +2,26 @@
 <html>
 
 <head>
-<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
-<script type="text/javascript" src="events.js"></script>
+	<title>Winsford Swimming Club</title>
+	<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+	<link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192">
+	<link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+	<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+	<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+	<meta name="msapplication-TileColor" content="#9f00a7">
+	<meta name="msapplication-TileImage" content="/mstile-144x144.png">
+	<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+	<script type="text/javascript" src="events.js"></script>
+	<!-- <script type="text/javascript" src="signin.js"></script> -->
 </head>
 
 <!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
@@ -11,34 +29,70 @@
 
 <body>
 	<nav>
-	  <a href="index.html">Home</a>
-	  <a href="personal_bests.html">Personal Bests</a>
-	  <a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
-	  <a href="club_records.html">Club Records</a>
-	  <a href="admin.html">Admin</a>
+		<a href="index.html">Home</a>
+		<a href="swimmer.html">Swimmers</a>
+		<a href="personal_bests.html">Personal Bests</a>
+		<a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
+		<a href="club_records.html">Club Records</a>
 	</nav>
 	<h1>Winsford Swimming Club</h1>
-	<article>
+	<article class="FirstOnPage">
 		<h2>Unofficial Experimental Site</h2>
 		<p>This site is being developed by Oli Wright (Ethan's dad).</p>
 		<p>It's a small nerdy project I've been working on as a way to teach myself about web technologies.</p>
 		<p>All the information that I use in this site is publicly available on the <a href="https://www.swimmingresults.org/">ASA website</a>. But it can be a bit unfriendly and slow and not particularly phone-friendly.</p>
-		<p>This site uses Google servers to 'scrape' data about Winsford swimmers from the ASA website. It then presents this data in what I hope is a more friendly and useful manner. Take a look at the <a href="personal_bests.html">Personal Bests</a> page.</p>
+		<p>This site uses Google servers to 'scrape' data about Winsford swimmers from the ASA website. It then presents this data in what I hope is a more friendly and useful manner.</p>
+		<p>Take a look at the <a href="swimmer.html">Swimmers</a> or <a href="personal_bests.html">Personal Bests</a> pages.</p>
+		<p>A new addition is the <a href="conversion.html">time conversion</a> page, which lets you convert times between long and short course race times.<p>
 	</article>
+	<!--<object data="winsford_logo.svg" type="image/svg+xml">Nuts</object>-->
+	<!--<img src="/winsford_logo.svg"></img>-->
 	<article>
 		<h2>My ToDo list</h2>
 		<p>Here's my list of things that this site doesn't currently do, that I'd like it to be able to do.</p>
 		<ul>
-			<li>Add a page for each swimmer, showing their progression over time. With graphs.</li>
 			<li>Make the PBs page 'linkable'. Currently if you set up a selection of swimmers, that selection is stored on your device in what's called HTML5 local storage. Which is all well and good unless you want to save a selection and then retrieve it later. I need to add the ability to optionally put the swimmers into the URL instead of using local storage, then you can send links with swimmer selections in them.</li>
 			<li>Fix the display of splits for longer IM races. Often the split times on the ASA site are nonsense (missing splits, or wrongly labelled distances), so I try to figure out what really happened. Most of the time what I've got works fine, but in some longer IM races it can get confused.</li>
 			<li>Add galas. This will include all qualifying times for all age groups so you'll be able to very easily see who qualifies for what.</li>
-			<li>Add ability to import data from Hy-Tek systems. I don't know anything about this yet, other than lots of our time-trial data is on this system and is not published to the ASA.</li>
+			<li>Finish the Hy-Tek data import. Lots of our time-trial data is on this system and is not published to the ASA.</li>
 			<li>Add club records. Once we've got all our time-trial data in, then it should be perfectly possible to automatically generate club records.</li>
 		</ul>
 	</article>
 	<article>
 		<h2>What's New</h2>
+		<h3>17/7/2015</h3>
+		<ul>
+			<li>Improved the progress graph on the <a href="swimmer.html">Swimmers</a> page.  This is my first piece of 3rd party software that I'm using, called <a href="http://www.highcharts.com/products/highcharts">Highcharts</a>.  Just click on an event name in the personal bests table to get a graph of the swimmer's progress over time for that event.</li>
+		</ul>
+		<h3>5/7/2015</h3>
+		<ul>
+			<li>Added the ability to 'upgrade' swimmers that I had listed as Cat1 to Cat2 when they're upgraded on the ASA website.  Previously when I found a Winsford swimmer was Cat1, they were left as Cat1 indefinitely, so would never become visible in the app.</li>
+		</ul>
+		<h3>2/7/2015</h3>
+		<ul>
+			<li>Finally got round to adding a <a href="conversion.html">time conversion page</a> that I promised a few people. This is like other swim time converters that you might come across, but I like to think mine is better. The conversion is done directly using the ASA conversion algorithm, rather than from the tables that were produced using that algorithm. And it runs in your browser, rather than sending conversion requests off to some server somewhere. That means it's fast, and it should even work without an internet connection as long as you have the page cached. As a bonus I've done a couple of extra slimmed-down versions of the page <a href="conversion2.html">here</a> and <a href="conversion3.html">here</a>, with different methods of entering times. Use whichever one you prefer. Conversions will also be stored in your browser history.</li>
+		</ul>
+		<h3>29/9/2014</h3>
+		<ul>
+			<li>Added icons for most devices. I don't have any Apple or Windows 8 devices, so I can't be sure these will have worked.</li>
+		</ul>
+		<h3>24/9/2014</h3>
+		<ul>
+			<li>Added the <a href="swimmer.html">Swimmers</a> page to the nav bar.</li>
+			<li>Added swimmer selector to the swimmer page if none is specified in the URL.</li>
+			<li>Swimmer page will update the page's URL and title when a swimmer is selected.</li>
+			<li>Changed the icon from the default app-engine icon, to the Winsford 'W'.</li>
+		</ul>
+		<h3>17/9/2014</h3>
+		<ul>
+			<li>Added the beginnings of some graphing. It's very crude at the moment, but it will get better. If you want to take a look, click on a swimmer's name in the PB table (the only way to get to a swimmer's page at the moment), then click on an event name in their PB table on the swimmer page.</li>
+		</ul>
+		<h3>8/9/2014</h3>
+		<ul>
+			<li>Lots of work towards being able to import data from our Hy-Tek database. I've succeeded in getting pretty much all the information I need out of a HY3 meets results file exported from Hy-Tek Team Manager. Now I just need to merge the data into this system's database.</li>
+			<li>Fixed a massive bug relating to how dates are displayed. It turns out that I was showing all dates off by one month. This turns out to be because JavaScript's Date object has this absolutely ridiculous convention where days are numbered from 1, but months are numbered from 0.</li>
+			<li>Added a history of swims for an event in the swimmer's page. Go to the PB page and add a swimmer that you're interested in, then click on their name and it will take you to that swimmer's page (you can bookmark this page if you like). Now if you click on an event name in the PB list, you'll get a history of all the races for that event. This is a precursor to graphs, which I'll hopefully start working on soon...</li>
+		</ul>
 		<h3>5/9/2014</h3>
 		<ul>
 			<li>Moved the source code over to GitHub and connected it with Google Cloud Platform's Push-to-Deploy. The code is hosted <a href="https://github.com/OliWright/WinsfordASC">here</a>.</li>

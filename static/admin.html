@@ -2,12 +2,29 @@
 <html>
 
 <head>
-<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
-<script type="text/javascript" src="events.js"></script>
-<script type="text/javascript" src="event.js"></script>
-<script type="text/javascript" src="swimmer.js"></script>
-<script type="text/javascript" src="swimmerlist.js"></script>
-<script type="text/javascript" src="admin.js"></script>
+	<title>Winsford Swimming Club Admin</title>
+	<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+	<link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192">
+	<link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+	<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+	<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+	<meta name="msapplication-TileColor" content="#9f00a7">
+	<meta name="msapplication-TileImage" content="/mstile-144x144.png">
+	<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+	<script type="text/javascript" src="events.js"></script>
+	<script type="text/javascript" src="event.js"></script>
+	<script type="text/javascript" src="swimmer.js"></script>
+	<script type="text/javascript" src="swimmerlist.js"></script>
+	<script type="text/javascript" src="admin.js"></script>
 </head>
 
 <!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
@@ -15,14 +32,15 @@
 
 <body>
 	<nav>
-	  <a href="index.html">Home</a>
-	  <a href="personal_bests.html">Personal Bests</a>
-	  <a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
-	  <a href="club_records.html">Club Records</a>
-	  <a href="admin.html">Admin</a>
+		<a href="index.html">Home</a>
+		<a href="swimmer.html">Swimmers</a>
+		<a href="personal_bests.html">Personal Bests</a>
+		<a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
+		<a href="club_records.html">Club Records</a>
+		<a href="hytek_import.html">Hy-Tek Import</a>
 	</nav>
 	<h1>Winsford Swimming Club</h1>
-	<article>
+	<article class="FirstOnPage">
 		<h2>Site Administration.</h2>
 		<!-- <h3>Currently down...</h3> -->
 		<p>If you don't know what you're doing then you shouldn't be here.</p>
@@ -63,6 +81,7 @@
 		<p>Enter an ASA swimmer number to add that swimmer whether or not they are registered to Winsford.</p>
 		<input id="update_swimmers_input" value=""/>
 		<button onclick=updateSwimmers()>Update Swimmers</button>
+		<button onclick='doAdminPost( "/admin/queue_check_for_all_swimmer_upgrades", "" )'()>Queue Cat1 to Cat2 upgrade check for all Cat1 swimmers.</button>
 	</article>
 	<article>
 		<h2>Update Swims</h2>
@@ -77,6 +96,7 @@
 		<button onclick='doAdminPost( "/admin/queue_update_all_swims", "" )'>Queue update of all swims for all swimmers</button>
 		<button onclick='doAdminPost( "/admin/queue_update_all_personal_bests", "" )'>Queue update of all personal bests for all swimmers</button>
 		<button onclick='doAdminPost( "/admin/update_swimmer_list", "" )'>Update swimmer list</button>
+		<button onclick='doAdminPost( "/admin/test", "" )'>Test</button>
 	</article>
 	
 	<article>

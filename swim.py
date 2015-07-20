@@ -282,6 +282,15 @@ class Swim(ndb.Model):
     if (swims is not None) and (len(swims) > 0):
       swims[0].unpack_data()
       return swims[0]
+ 
+  # Retrieves all a swimmer's swims for an event.
+  @classmethod
+  def fetch_all(cls, asa_number, event ):
+    key = create_parent_key( asa_number, event )
+    swims = cls.query( ancestor=key ).order(cls.race_time).fetch()
+    for swim in swims:
+      swim.unpack_data()
+    return swims
 
   # Convert to string, usually to send to the JS Swim constructor in swim.js
   def __str__(self):
@@ -298,6 +307,7 @@ class Swim(ndb.Model):
         previous_time = split.time
         first = False
     data_str += "|" + str( self.race_time )
+    data_str += "|" + self.create_swim_key_str()
     return data_str
       
 swims_headers_of_interest = ( "Swim Date", "Meet", "Time" )
@@ -327,7 +337,7 @@ def scrape_swims( swimmer, event, output ):
   page = helpers.FetchUrl( url )
 
   if page is None:
-    loggin.error( "Expected page text but got none." )
+    logging.error( "Expected page text but got none." )
     return 503
     
   # The ASA individual best times page includes the same information in two tables.

@@ -213,3 +213,12 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+#############
+## App Engine
+#############
+
+#apiclient/
+#httplib2/
+#oauth2client/
+#uritemplate/

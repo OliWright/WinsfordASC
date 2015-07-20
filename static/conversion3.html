@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Winsford Swimming Club</title>
+	<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+	<link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192">
+	<link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+	<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+	<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+	<meta name="msapplication-TileColor" content="#9f00a7">
+	<meta name="msapplication-TileImage" content="/mstile-144x144.png">
+	<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+	<script type="text/javascript" src="events.js"></script>
+	<script type="text/javascript" src="event.js"></script>
+	<script type="text/javascript" src="helpers.js"></script>
+	<script type="text/javascript">var urlBase = 'conversion3.html';</script>
+	<script type="text/javascript" src="conversion.js"></script>
+</head>
+
+<!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<body>
+	<h1>Winsford Swimming Club</h1>
+	<article class="FirstOnPage">
+		<h2>Long/Short Course Time Conversion</h2>
+		<p><label>Enter Time: <input type="time" step="0.01" min="00:00:00.000" max="00:40:00.000" value="00:00:00.000" id="input_time" onchange="TimeChanged()" onfocusout="UpdateURL()"/></label></p>
+		<p><label>Event: <select id="event_select" name="event" onchange="EventOrModeChanged()">
+			<option value="0">50 Free</option>
+			<option value="1">100 Free</option>
+			<option value="2">200 Free</option>
+			<option value="3">400 Free</option>
+			<option value="4">800 Free</option>
+			<option value="5">1500 Free</option>
+			<option value="6">50 Breast</option>
+			<option value="7">100 Breast</option>
+			<option value="8">200 Breast</option>
+			<option value="9">50 Fly</option>
+			<option value="10">100 Fly</option>
+			<option value="11">200 Fly</option>
+			<option value="12">50 Back</option>
+			<option value="13">100 Back</option>
+			<option value="14">200 Back</option>
+			<option value="15">200 IM</option>
+			<option value="16">400 IM</option>
+		</select></label><p/>
+		<p><input type="radio" checked="true" id="short_to_long" name="conversion_mode" onchange="EventOrModeChanged()">Short to Long</input>
+		<input type="radio" id="long_to_short" name="conversion_mode" onchange="EventOrModeChanged()">Long to Short</input></p>
+	</article>
+	<article id="conversion_results">
+		<h2>Results</h2>
+		<p>Will appear here when you enter a time...</p>
+	</article>
+</body>
+
+</html>

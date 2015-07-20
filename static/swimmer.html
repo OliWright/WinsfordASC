@@ -2,14 +2,41 @@
 <html>
 
 <head>
-<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
-<script type="text/javascript" src="events.js"></script>
-<script type="text/javascript" src="event.js"></script>
-<script type="text/javascript" src="swimmer.js"></script>
-<script type="text/javascript" src="swimmerlist.js"></script>
-<script type="text/javascript" src="helpers.js"></script>
-<script type="text/javascript" src="swimmerpage.js"></script>
-<script type="text/javascript" src="personalbests.js"></script>
+	<title>Swimmer Information</title>
+	<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+	<link rel="icon" type="image/png" href="/favicon-192x192.png" sizes="192x192">
+	<link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+	<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+	<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+	<meta name="msapplication-TileColor" content="#9f00a7">
+	<meta name="msapplication-TileImage" content="/mstile-144x144.png">
+	
+	<!-- Third party libraries -->
+	<script type="text/javascript" src="highcharts/adapters/standalone-framework.js"></script>
+	<script type="text/javascript" src="highcharts/highcharts.js"></script>
+
+	<!-- My scripts -->
+	<link type="text/css" rel="stylesheet" href="stylesheets/main.css">
+	<script type="text/javascript" src="events.js"></script>
+	<script type="text/javascript" src="event.js"></script>
+	<script type="text/javascript" src="swimmer.js"></script>
+	<script type="text/javascript" src="swimmerlist.js"></script>
+	<script type="text/javascript" src="helpers.js"></script>
+	<script type="text/javascript" src="swim.js"></script>
+	<script type="text/javascript" src="canvas.js"></script>
+	<script type="text/javascript" src="graph.js"></script>
+	<script type="text/javascript" src="progressgraph_highcharts.js"></script>
+	<script type="text/javascript" src="swimmerpage.js"></script>
+	<script type="text/javascript" src="personalbests.js"></script>
 </head>
 
 <!-- Prevent phones and tablets from pretending to be higher resolution than they actually are -->
@@ -17,30 +44,54 @@
 
 <body>
 	<nav>
-	  <a href="index.html">Home</a>
-	  <a href="personal_bests.html">Personal Bests</a>
-	  <a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
-	  <a href="club_records.html">Club Records</a>
-	  <a href="admin.html">Admin</a>
+		<a href="index.html">Home</a>
+		<a href="swimmer.html">Swimmers</a>
+		<a href="personal_bests.html">Personal Bests</a>
+		<a href="relay_team_generator.html">Ultimate Relay Team Generator</a>
+		<a href="club_records.html">Club Records</a>
 	</nav>
 	<h1>Winsford Swimming Club</h1>
-	<article>
-		<!-- JavaScript in swimmer.js will inject HTML into this div -->
-		<div id="swimmer_data"><h2>Swimmer data</h2><p>Loading...</p></div>
-	</article>
-	<article>
-		<h2>Personal Bests</h2>
+	<!-- JavaScript in swimmer.js will unhide and inject HTML into this article -->
+	<!-- when we have a known swimmer ASA number -->
+	<article class="FirstOnPage" id="swimmer_data_article" hidden="true">
+		<div id="swimmer_data">
+			<h2>Swimmer data</h2><p>Loading...</p>
+		</div>
 		<label>Times:</span><select id="time_display_mode" name="timeDisplayMode" onchange="changeTimeDisplayMode( this.value )">
 			<option value="0">Both long and short course</option>
 			<option value="1">Converted to short course times</option>
 			<option value="2">Converted to long course times</option>
 		</select></label>
-		<div id="personal_bests"></div>
 	</article>
-	<article>
-		<h2>Coming Soon...</h2>
-		<h3>Graphs!</h3>
+	<!-- But if we haven't, then this will be unhidden instead -->
+	<article class="FirstOnPage" id="swimmer_selector_article" hidden="true">
+		<h2>Select Swimmer</h2>
+		<label>Gender:<select id="gender_select" name="gender" onchange="genderChange( this.value )">
+			<option value="">Any</option>
+			<option value="M">Male</option>
+			<option value="F">Female</option>
+		</select></label>
+		<label>Age:</span><select id="age_select" name="age" onchange="ageChange( this.value )">
+			<option value="0">Any</option>
+			<option value="9">9</option>
+			<option value="10">10</option>
+			<option value="11">11</option>
+			<option value="12">12</option>
+			<option value="13">13</option>
+			<option value="14">14</option>
+			<option value="15">15</option>
+			<option value="16">16</option>
+			<option value="Over16">Over 16</option>
+		</select></label>
+		<select id="swimmer_choice_list" onchange="swimmerSelected(this)">
+			<option>Loading...</option>
+		</select>
 	</article>
+	<article id="personal_bests_article" hidden="true">
+		<h2>Personal Bests</h2>
+		<div id="personal_bests"><p>Loading...</p></div>
+	</article>
+	<div id="extra_content"></div>
 </body>
 
 </html>
