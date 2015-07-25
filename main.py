@@ -29,6 +29,7 @@ import helpers
 
 from swimmer import Swimmer
 from swim import Swim
+from unofficialswim import UnofficialSwim
 from swim import ScrapeSplits
 from event import short_course_events
 from event import long_course_events
@@ -133,6 +134,8 @@ class GetSwimHistory(RequestHandler):
     
     swims = Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "S" ) )
     swims.extend( Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "L" ) ) )
+    swims.extend( UnofficialSwim.fetch_all( asa_number, Event.create( stroke_code, distance, "S" ) ) )
+    swims.extend( UnofficialSwim.fetch_all( asa_number, Event.create( stroke_code, distance, "L" ) ) )
     
     for swim in swims:
       self.response.out.write( str( swim ) + "\n" )

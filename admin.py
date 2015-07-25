@@ -21,8 +21,10 @@
 
 
 import logging
-
 import webapp2
+import json
+import datetime
+import time
 
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
@@ -36,6 +38,7 @@ from table_parser import TableRows
 from swimmer import Swimmer
 from swimmer_cat1 import SwimmerCat1
 from swim import Swim
+from unofficialswim import UnofficialSwim
 from swim import scrape_swims
 from swim import scrape_personal_bests
 from event import Event
@@ -254,6 +257,49 @@ class QueueCheckAllSwimmerUpgrades(webapp2.RequestHandler):
       self.response.out.write( "Queueing  upgrade check for " + swimmer.full_name() + "\n" )
       taskqueue.add(url='/admin/check_for_swimmer_upgrade', params={'asa_number': asa_number})
     
+ZERO_TIME_DELTA = datetime.timedelta(0) # same as 00:00
+
+class tzutc(datetime.tzinfo):
+  def utcoffset(self, dt): 
+      return ZERO_TIME_DELTA
+
+  def dst(self, dt):
+      return ZERO_TIME_DELTA 
+        
+class PostMeetResults(webapp2.RequestHandler):
+  def post(self):
+    results = json.loads( self.request.body )
+    import_meets = results["meets"];
+    logging.info( "Importing " + str(len(import_meets)) + " meets" )
+    #utc = datetime.tzinfo
+    for import_meet in import_meets:
+      import_swimmers = import_meet["swimmers"]
+      course_code = import_meet["courseCode"]
+      #start_date = datetime.datetime.strptime(import_meet["startDate"], '%Y-%m-%dT%H:%M:%S.%fZ')
+      
+      start_date = datetime.datetime( *(time.strptime(import_meet["startDate"], '%Y-%m-%dT%H:%M:%S.%fZ')[0:6]),tzinfo=tzutc() )
+      logging.info( "Meet start date: " + start_date.strftime("%d/%m/%Y") )
+      meet_name = import_meet["name"]
+      for import_swimmer in import_swimmers:
+        name = import_swimmer["name"]
+        if "asaNumber" in import_swimmer:
+          asa_number = import_swimmer["asaNumber"]
+          swimmer = Swimmer.get( "Winsford", asa_number )
+          if swimmer is None:
+            logging.error( "Unable to find swimmer: " + name + "ASAA Number: " + str(asa_number) )
+          else:
+            import_swims = import_swimmer["swims"]
+            for import_swim in import_swims:
+              event = Event.create_from_code( import_swim["eventCode"], course_code )
+              swim = UnofficialSwim.create( swimmer, event, start_date, meet_name, import_swim["raceTime"] )
+              if swim is None:
+                logging.error( "Failed to create swim" )
+              else:
+                swim.put()
+        else:
+          logging.error( "No ASA number for swimmer: " + name )
+        
+    
 class Test(webapp2.RequestHandler):
   def post(self):
     full_name = "Gracie  (Gracie) Griffin"
@@ -285,6 +331,7 @@ app = webapp2.WSGIApplication([
   ('/admin/update_swimmer_list', UpdateSwimmerList),
   ('/admin/queue_check_for_all_swimmer_upgrades', QueueCheckAllSwimmerUpgrades),
   ('/admin/check_for_swimmer_upgrade', CheckSwimmerUpgrade),
+  ('/admin/post_meet_results', PostMeetResults),
   ('/admin/test', Test),
 ])
 

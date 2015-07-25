@@ -257,7 +257,7 @@ class Swim(ndb.Model):
     return self.asa_swim_id
     
   @classmethod
-  def create(cls, swimmer, event, date, meet, race_time, asa_swim_id):
+  def create(cls, swimmer, event, date, meet, race_time, asa_swim_id = None):
     key = create_parent_key( swimmer.asa_number, event )
     id = compute_swim_key_id( date, swimmer.asa_number, event )
 

@@ -37,16 +37,19 @@ var hytekCourseCodeToCourse = [];
 hytekCourseCodeToCourse[ "L" ] = longCourse;
 hytekCourseCodeToCourse[ "S" ] = shortCourse;
 
-function createHtmlTableForMeet( hy3Meet )
+var hytekImportFileName;
+var hytekImportResults;
+
+function createHtmlTableForMeet( meet )
 {
 	var table = '<table>';
 
-	var hy3Swimmers = hy3Meet.swimmers;
-	for( var j = 0; j < hy3Swimmers.length; j++ )
+	var swimmers = meet.swimmers;
+	for( var j = 0; j < swimmers.length; j++ )
 	{
-		var hy3Swimmer = hy3Swimmers[j];
+		var swimmer = swimmers[j];
 		table += '<tr ';
-		if( hy3Swimmer.asaNumber )
+		if( swimmer.asaNumber )
 		{
 			table += 'class="Valid"';
 		}
@@ -55,15 +58,16 @@ function createHtmlTableForMeet( hy3Meet )
 			table += 'class="Invalid"';
 		}
 		table += '>';
-		table += '<th>' + hy3Swimmer.getFullName() + '</th>';
+		table += '<th>' + swimmer.name + '</th>';
 		table += '</tr>';
-		var hy3Swims = hy3Swimmer.swims;
-		for( var k = 0; k < hy3Swims.length; k++ )
+		var swims = swimmer.swims;
+		for( var k = 0; k < swims.length; k++ )
 		{
-			var hy3Swim = hy3Swims[k]
-			table += '<tr class="' + hy3Swim.event.stroke.shortName + '">';
-			table += '<td>' + hy3Swim.event.distance + ' ' + hy3Swim.event.stroke.shortName + '</td>';
-			table += '<td class="RaceTime">' + raceTimeToString( hy3Swim.time ) + '</td>';
+			var swim = swims[k]
+			var event = events[ swim.eventCode ];
+			table += '<tr class="' + event.stroke.shortName + '">';
+			table += '<td>' + event.distance + ' ' + event.stroke.shortName + '</td>';
+			table += '<td class="RaceTime">' + raceTimeToString( swim.raceTime ) + '</td>';
 			table += '</tr>';
 		}
 	}
@@ -72,19 +76,22 @@ function createHtmlTableForMeet( hy3Meet )
 	return table;
 }
 
-function createHtmlForMeets( hy3Meets )
+function createHtmlForMeets( results )
 {
 	var html = '';
 
-	for( var i = 0; i < hy3Meets.length; i++ )
+	var meets = results.meets;
+	for( var i = 0; i < meets.length; i++ )
 	{
-		var hy3Meet = hy3Meets[i];
+		var meet = meets[i];
 		html += '<article>';
-		html += '<h2>' + hy3Meet.meetName + '</h2>';
-		html += '<p>' + hy3Meet.start.toLocaleDateString() + " to " + hy3Meet.end.toLocaleDateString() + '</p>';
-		html += createHtmlTableForMeet( hy3Meet );
+		html += '<h2>' + meet.name + '</h2>';
+		html += '<p>' + meet.startDate.toLocaleDateString() + " to " + meet.endDate.toLocaleDateString() + '</p>';
+		html += createHtmlTableForMeet( meet );
+		html += '<p><button onclick="downloadHyTekResults()">Download JSON</button></p>';
 		html += '</article>';
 	}
+
 	return html;
 }
 
@@ -98,17 +105,36 @@ function processHy3Results( hy3Meets )
 	// thing we need to do is match up the swimmers with this in our
 	// database in swimmerlist.js.   We have to match up by name first
 	// and then date-of-birth where possible.
+	
+	// Create a new array of results to send up to the server
+	var results = {};
+	results.meets = [];
+	
 	// We'll add a 'swimmer' attribute to the ones that we are able
 	// to match up, which is the Swimmer object from swimmer.js
 	for( var i = 0; i < hy3Meets.length; i++ )
 	{
 		var hy3Meet = hy3Meets[i];
 		var course = hytekCourseCodeToCourse[ hy3Meet.courseCode ];
+
+		var meet = {};
+		meet.name = hy3Meet.meetName;
+		meet.courseCode = hy3Meet.courseCode;
+		meet.startDate = hy3Meet.start;
+		meet.endDate = hy3Meet.end;
+		meet.swimmers = [];
+		results.meets.push( meet );
+		
 		var hy3Swimmers = hy3Meet.swimmers;
 		for( var j = 0; j < hy3Swimmers.length; j++ )
 		{
 			var hy3Swimmer = hy3Swimmers[j];
-			hy3Swimmer.asaNumber = findSwimmerAsaNumberByNameAndDateOfBirth( hy3Swimmer.firstName, hy3Swimmer.lastName, hy3Swimmer.dateOfBirth );
+			var swimmer = {};
+
+			swimmer.asaNumber = findSwimmerAsaNumberByNameAndDateOfBirth( hy3Swimmer.firstName, hy3Swimmer.lastName, hy3Swimmer.dateOfBirth );
+			swimmer.name = hy3Swimmer.getFullName();
+			swimmer.swims = [];
+			meet.swimmers.push( swimmer );
 
 			// While we're at it, let's match up the event details in the
 			// Hy3Swim objects to our Event objects
@@ -116,31 +142,80 @@ function processHy3Results( hy3Meets )
 			for( var k = 0; k < hy3Swims.length; k++ )
 			{
 				var hy3Swim = hy3Swims[k];
-				hy3Swim.event = findEvent( hy3Swim.distance, hytekStrokeCodeToStroke[ hy3Swim.stroke ], course );
+				var swim = {};
+				swim.eventCode = findEvent( hy3Swim.distance, hytekStrokeCodeToStroke[ hy3Swim.stroke ], course ).code;
+				swim.raceTime = hy3Swim.time;
+				swimmer.swims.push( swim );
 			}
 		}
 	}
 
-	//JSON.stringify( hy3Meets );
+	return results;
 }
 
-
-
-function importMeetResultsHy3(evt)
+function convertMeetResultsHy3ToJson(evt)
 {
 	//Retrieve the first (and only!) File from the FileList object
 	var f = evt.target.files[0]; 
-
+	console.log( f )
 	if (f)
 	{
+		hytekImportFileName = f.name;
 		var r = new FileReader();
 		r.onload = function(e)
 		{ 
 			var hy3Meets = parseMeetResults( e.target.result );
-			processHy3Results( hy3Meets );
+			var results = processHy3Results( hy3Meets );
 			// Show the results before we push them to the server
-			var meetResultsElement = document.getElementById('meetresults')
-			meetResultsElement.innerHTML = createHtmlForMeets( hy3Meets );
+			var meetResultsElement = document.getElementById('importresults')
+			meetResultsElement.innerHTML = createHtmlForMeets( results );
+			hytekImportResults = results;
+		}
+		r.readAsText(f);
+	}
+	else
+	{ 
+		alert("Failed to load file");
+	}
+}
+
+function downloadHyTekResults()
+{
+	var a = document.createElement('a');
+	a.href = window.URL.createObjectURL(new Blob([ JSON.stringify( hytekImportResults, null, 2 ) ], {type: 'text/csv;charset=utf-8;'}));
+	a.download = hytekImportFileName + '.json';
+	a.style.display = 'none';
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+}
+
+function importMeetResultsJson(evt)
+{
+	//Retrieve the first (and only!) File from the FileList object
+	var f = evt.target.files[0]; 
+	console.log( f )
+	if (f)
+	{
+		hytekImportFileName = f.name;
+		var r = new FileReader();
+		r.onload = function(e)
+		{ 
+			var request = new XMLHttpRequest();
+			var url = "admin/post_meet_results";
+			var params = e.target.result;
+			request.open( "POST", url, true );
+			//console.log(params);
+			
+			request.onreadystatechange = function (e)
+			{
+				alert(this.responseText);
+			};
+			request.onerror = function (e)
+			{
+				alert(this.statusText);
+			};	
+			request.send( params );
 		}
 		r.readAsText(f);
 	}
@@ -152,7 +227,9 @@ function importMeetResultsHy3(evt)
 
 function activateMeetResultsImport()
 {
-	document.getElementById('meetresultsfile').addEventListener('change', importMeetResultsHy3, false);
+	document.getElementById('meetResultsHy3File').addEventListener('change', convertMeetResultsHy3ToJson, false);
+	document.getElementById('meetResultsJsonFile').addEventListener('change', importMeetResultsJson, false);
+	document.getElementById('importresults').innerHTML = "";
 }
 
 AddListener( "onSwimmerListLoaded", activateMeetResultsImport );
