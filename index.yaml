@@ -37,3 +37,8 @@ indexes:
   properties:
   - name: last_name
   - name: first_name
+
+- kind: UnofficialSwim
+  ancestor: yes
+  properties:
+  - name: T
