@@ -30,7 +30,7 @@ function Swimmer( row, today )
 	this.is_male = false;
 	if( tok[4]=="M" ) { this.is_male = true; }
 	var dob_fields = tok[5].split("/");
-	this.date_of_birth = new Date( dob_fields[2], dob_fields[1] - 1, dob_fields[0] );
+	this.date_of_birth = new Date( Date.UTC( dob_fields[2], dob_fields[1] - 1, dob_fields[0] ) );
 	this.asa_number = parseInt( tok[0] );
 	this.last_name = tok[1];
 	this.first_name = tok[2];

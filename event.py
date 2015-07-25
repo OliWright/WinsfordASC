@@ -88,6 +88,12 @@ class Event:
       return
     return cls.create( stroke_id, distance, course_code )
   
+  @classmethod
+  def create_from_code( cls, event_code, course_code ):
+    if course_code == "L":
+      event_code = event_code | 0x100
+    return cls( event_code )
+  
   def to_asa_event_number(self):
     return (self.event_code & 0xff) + 1
     

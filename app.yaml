@@ -29,9 +29,9 @@ handlers:
 # All URLs ending in .gif .png or .jpg are treated as paths to static files in
 # the static/ directory. The URL pattern is a regexp, with a grouping that is
 # inserted into the path to the file.
-- url: /(.*\.(txt|html|js|gif|png|jpg|ico|xml))$
+- url: /(.*\.(txt|html|js|gif|png|jpg|ico|xml|svg))$
   static_files: static/\1
-  upload: static/.*\.(txt|html|js|gif|png|jpg|ico|xml)
+  upload: static/.*\.(txt|html|js|gif|png|jpg|ico|xml|svg)
   
 - url: /admin.*
   script: admin.app
