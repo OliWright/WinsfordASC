@@ -88,6 +88,11 @@ class GetSwimmerList(RequestHandler):
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write( StaticData.get_swimmer_list() )
         
+class GetClubRecords(RequestHandler):
+  def get(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write( StaticData.get_club_records() )
+        
 class GetSwimDetails(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
@@ -145,4 +150,5 @@ app = webapp2.WSGIApplication([
   ('/swimmer_list', GetSwimmerList),
   ('/swim_details', GetSwimDetails),
   ('/swim_history', GetSwimHistory),
+  ('/club_records', GetClubRecords),
 ])

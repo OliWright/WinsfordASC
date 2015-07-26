@@ -47,6 +47,7 @@ strokeDistanceAndTurnFactors = (
 )
 
 stroke_id_to_string = ( "Freestyle", "Breaststroke", "Butterfly", "Backstroke", "IM" )
+stroke_id_to_short_string = ( "Free", "Breast", "Fly", "Back", "IM" )
 course_id_to_string = ( "Short", "Long" )
 
 class Event:
@@ -114,6 +115,12 @@ class Event:
     
   def to_int(self):
     return self.event_code
+
+  def short_name_without_course(self):
+    strokeDistanceAndTurnFactor = strokeDistanceAndTurnFactors[self.event_code & 0xff]
+    stroke_id = strokeDistanceAndTurnFactor[0]
+    distance = strokeDistanceAndTurnFactor[1]
+    return str( distance ) + " " + stroke_id_to_short_string[ stroke_id ]
     
   def key(self):
     return self.event_code + 1

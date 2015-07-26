@@ -271,14 +271,14 @@ class Swim(ndb.Model):
   # Optionally pass the age that you want the PB for.  This can be used to generate
   # club records by finding a swimmer's fastest 200 Free time when they were 11 for example.
   @classmethod
-  def fetch_pb(cls, swimmer, event, age_on_day = None ):
+  def fetch_pb(cls, swimmer, event, aod = None ):
     key = create_parent_key( swimmer.asa_number, event )
-    if age_on_day is None:
+    if aod is None:
       # We want this swimmer's absolute PB
       swims = cls.query( ancestor=key ).order(cls.race_time).fetch(1)
     else:
       # Fetch this swimmer's PB for the specified age
-      swims = cls.query( age_on_day=age_on_day, ancestor=key ).order(cls.race_time)
+      swims = cls.query( Swim.age_on_day == aod, ancestor=key ).order(cls.race_time).fetch(1)
     if (swims is not None) and (len(swims) > 0):
       swims[0].unpack_data()
       return swims[0]

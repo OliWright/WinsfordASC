@@ -48,6 +48,7 @@ from swimmer_parser import scrape_swimmer
 from swimmer_parser import scrape_swimmers
 from swimmer_parser import check_swimmer_upgrade
 from static_data import StaticData
+from race_time import RaceTime
 
 # Helper to scrape swimmingresults.org for ALL recorded swims for a particular
 # swimmer in the events specified.
@@ -299,7 +300,71 @@ class PostMeetResults(webapp2.RequestHandler):
         else:
           logging.error( "No ASA number for swimmer: " + name )
         
+class Record:
+  def __init__( self, age, swimmer, swim, race_time_sc ):
+    self.age = age
+    self.swimmer = swimmer
+    self.swim = swim
+    self.race_time_sc = race_time_sc
+
+gender_codes = ( 'M', 'F' )
     
+class UpdateClubRecords(webapp2.RequestHandler):
+  def post(self):
+    records_for_each_gender=[{},{}]
+    swimmers = Swimmer.query_club( "Winsford" );
+    num_event_codes = len( short_course_events )
+    for gender_idx in range( 0, 2 ):
+      gender_code = gender_codes[ gender_idx ]
+      is_male = (gender_idx == 0)
+      records_for_each_age = records_for_each_gender[gender_idx]
+      for age in range( 9, 17 ):
+        records_for_this_age={}
+        records_for_each_age[ age ] = records_for_this_age
+        for event_code in range( 0, num_event_codes ):
+          sc_event = short_course_events[ event_code ]
+          lc_event = long_course_events[ event_code ]
+          best_race_time = 9999999
+          best_swimmer = None
+          best_swim = None
+          for swimmer in swimmers:
+            if swimmer.is_male == is_male:
+              # Figure out this swimmer's best time at this age converted
+              # to short course time
+              sc_pb_time = 9999999
+              sc_pb_swim = Swim.fetch_pb( swimmer, sc_event, age )
+              pb_swim = sc_pb_swim
+              lc_pb_swim = Swim.fetch_pb( swimmer, lc_event, age )
+              if sc_pb_swim is not None:
+                sc_pb_time = sc_pb_swim.race_time
+              if lc_pb_swim is not None:
+                lc_pb_time_converted = lc_event.convertTime( lc_pb_swim.race_time )
+                if lc_pb_time_converted < sc_pb_time:
+                  sc_pb_time = lc_pb_time_converted
+                  pb_swim = lc_pb_swim
+              if (pb_swim is not None) and (sc_pb_time < best_race_time):
+                # This is the best time we've seen so far
+                best_race_time = sc_pb_time
+                best_swimmer = swimmer
+                best_swim = pb_swim
+          if best_swim is not None:
+            record = Record( age, best_swimmer, best_swim, best_race_time )
+            records_for_this_age[ event_code ] = record
+            logging.info( 'Record for ' + gender_code + ' ' + str(age) + ' ' + sc_event.short_name_without_course() + ': ' + str( RaceTime(best_race_time) ) + ', ' + best_swimmer.full_name() )
+    # Now tabulate and send a plain text response
+    club_records = ''
+    self.response.headers['Content-Type'] = 'text/plain'
+    for gender_idx in range( 0, 2 ):
+      records_for_each_age = records_for_each_gender[gender_idx]
+      gender_code = gender_codes[ gender_idx ]
+      for age, records_for_age in records_for_each_age.iteritems():
+        for event_code, record in records_for_age.iteritems():
+          swimmer = record.swimmer
+          swim = record.swim
+          club_records += ( gender_code + '^' + str(record.age) +'^' + str(event_code) + '^'+ swimmer.full_name() + '^' + str(swim) + '\n' )
+    self.response.out.write( club_records )
+    StaticData.set_club_records( club_records )
+        
 class Test(webapp2.RequestHandler):
   def post(self):
     full_name = "Gracie  (Gracie) Griffin"
@@ -332,6 +397,7 @@ app = webapp2.WSGIApplication([
   ('/admin/queue_check_for_all_swimmer_upgrades', QueueCheckAllSwimmerUpgrades),
   ('/admin/check_for_swimmer_upgrade', CheckSwimmerUpgrade),
   ('/admin/post_meet_results', PostMeetResults),
+  ('/admin/update_club_records', UpdateClubRecords),
   ('/admin/test', Test),
 ])
 
