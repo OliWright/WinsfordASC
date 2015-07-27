@@ -25,7 +25,7 @@ from swimmer import Swimmer
 
 swimmer_list_key = ndb.Key( "StaticData", 1 )
 credentials_key = ndb.Key( "StaticData", 2 )
-
+club_records_key = ndb.Key( "StaticData", 3 )
 
 class StaticData(ndb.Model):
   data = ndb.TextProperty( "Data", indexed=False, required=True )
@@ -58,3 +58,12 @@ class StaticData(ndb.Model):
   @classmethod
   def get_credentials( cls ):
     return cls.get_optional( credentials_key )
+    
+  @classmethod
+  def get_club_records( cls ):
+    return club_records_key.get().data
+    
+  @classmethod
+  def set_club_records( cls, club_records_txt ):
+    club_records_item = cls( key = club_records_key, data = club_records_txt )
+    club_records_item.put()
