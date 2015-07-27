@@ -32,46 +32,6 @@ function deletePBsTable()
 // In this mode, we add additional columns for venue and date.
 var pbTableSingleSwimmerMode = false;
 
-// Create a <td> HTML element for a race time.
-// This has been pulled into its own helper function because it's getting quite complex.
-// It includes optional conversion into a target course (long or short), in which
-// case it includes a tool-tip for the original time.
-// Also if a key is provided, it creates the time as a hyperlink to a page
-// for the swim.
-function createRaceTimeTdElement( swimEvent, swimTime, swimKey, targetCourse )
-{
-	var isConverted = false;
-	if( targetCourse )
-	{
-		isConverted = (swimEvent.course != targetCourse);
-	}
-
-	var attributes = ' class="RaceTime"';
-	if( isConverted )
-	{
-		attributes += ' title="Original ' + swimEvent.course.longName + ' Time: ' + raceTimeToString( swimTime ) + '"';
-		swimTime = swimEvent.convertRaceTime( swimTime, targetCourse );
-	}
-	
-	var contents;
-	if( swimKey !== undefined )
-	{
-		contents = '<a href="swim.html?swim=' + swimKey + '">' + raceTimeToString( swimTime ) + '</a>';
-	}
-	else
-	{
-		contents = raceTimeToString( swimTime );
-	}
-	
-	var td = '<td' + attributes + '>' + contents;
-	if( isConverted )
-	{
-		td += '<sup>*</sup>';
-	}
-	td += '</td>';
-	return td;
-}
-
 function populatePBsTable()
 {
 	var table = '<table><tr><th class="StickyColumn">Event</th>';

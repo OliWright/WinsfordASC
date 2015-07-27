@@ -157,6 +157,7 @@ var Event = function( code, distance, stroke, turnFactor, course )
 	this.convertRaceTime = convertRaceTime;
 	this.toLongString = toLongString;
 	this.toShortString = toShortString;
+	this.toShortStringWithoutCourse = toShortStringWithoutCourse;
 
 	function convertRaceTime( raceTime, course )
 	{
@@ -203,6 +204,15 @@ var Event = function( code, distance, stroke, turnFactor, course )
 		str += this.stroke.shortName;
 		str += " ";
 		str += this.course.shortName;
+		return str;
+	}
+
+	function toShortStringWithoutCourse()
+	{
+		var str = "";
+		str += this.distance;
+		str += " ";
+		str += this.stroke.shortName;
 		return str;
 	}
 }

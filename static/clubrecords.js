@@ -19,6 +19,34 @@
 // with this program (file LICENSE); if not, write to the Free Software Foundation, Inc.,
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.import logging
 
+function createRecordsTable( records )
+{
+	var table = '<table>';
+	table += '<tr><th>Event</th><th>Swimmer</th><th>Meet</th><th>Date</th><th>Time</th></tr>';
+
+	for( var eventCode = 0; eventCode < shortCourseEvents.length; eventCode++ )
+	{
+		event = shortCourseEvents[ eventCode ];
+		var row = '<tr class="' + event.stroke.shortName + '"><td>' + event.toShortStringWithoutCourse() + '</td>';
+		record = records[ eventCode ];
+		if( record != null )
+		{
+			row += '<td>' + record.swimmer.getFullName() + '</td>';
+			row += '<td>' + record.swim.meet + '</td>';
+			row += '<td>' + record.swim.date.toLocaleDateString() + '</td>';
+			row += createRaceTimeTdElement( record.swim.event, record.swim.raceTime, record.swim.key, shortCourse );
+		}
+		else
+		{
+			row += '<td></td><td></td><td></td><td></td>';
+		}
+		row += '</tr>'
+		table += row;
+	}
+
+	table += '</table>';
+	return table;
+}
 
 function loadClubRecords()
 {
@@ -35,7 +63,12 @@ function loadClubRecords()
 	{
 		// Convert the packed text swims into an array of Swim objects
 		var recordLines = this.responseText.split("\n");
-		var maleRecords = [];
+		var genderRecords = [ /* Male */[], /* Female */[] ];
+		for( var age = 9; age < 17; age++ )
+		{
+			genderRecords[0][age] = [];
+			genderRecords[1][age] = [];
+		}
 		for( var i = 0; i < recordLines.length; i++ )
 		{
 			if( recordLines[i] != "" )
@@ -57,27 +90,32 @@ function loadClubRecords()
 					{
 						genderCode = 1;
 					}
+					genderRecords[ genderCode ][ age ][ eventCode ] = record;
 				}
 			}
 		}
 
-		// Sort them by date
-		function compareSwimDates(a,b)
+		for( var genderCode = 0; genderCode < 2; genderCode++ )
 		{
-			if( a.date < b.date ) return -1;
-			if (a.date > b.date) return 1;
-			return 0;
+			for( var age = 9; age < 17; age++ )
+			{
+				html += '<article><h2>';
+				if( genderCode == 0 )
+				{
+					html += 'Boys ';
+				}
+				else
+				{
+					html += 'Girls ';
+				}
+				html += age + ' and under</h2>';
+				html += createRecordsTable( genderRecords[ genderCode ][ age ] );
+				html += '</article>';
+			}
 		}
-		swims.sort( compareSwimDates );		
-		
-		// List them
-		html = '<article><h2>' + eventName + ' Progress</h2><div class="GraphHolder" id="progressGraphLocation"/></article>';
-		html += '<article><h2>' + eventName + ' History</h2>'
-		html += createSwimHistoryTable( swims );
-		html += '</article>';
+
 		extraContentElement.innerHTML = html;
-		extraContentElement.scrollIntoView();
-		createProgressGraph( swimmer, swims );
+		//extraContentElement.scrollIntoView();
 	}
 
 	request.onerror = function(e)
@@ -87,10 +125,10 @@ function loadClubRecords()
 		html += '<p>' + this.statusText + '</p>';
 		html += '</article>';
 		extraContentElement.innerHTML = html;
-		extraContentElement.scrollIntoView();
+		//extraContentElement.scrollIntoView();
 	}
 	
-	request.open( 'GET', '/get_club_records', true );
+	request.open( 'GET', '/club_records', true );
 	request.send();
 }
 
