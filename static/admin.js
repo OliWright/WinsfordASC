@@ -91,3 +91,9 @@ function updateSwims()
 	var searchInputElement = document.getElementById( "update_swims_input" );
 	doAdminPost( "/admin/queue_update_swims", "name_search=" + searchInputElement.value );
 }
+
+function updateSwimLists()
+{
+	var searchInputElement = document.getElementById( "update_swim_lists_input" );
+	doAdminPost( "/admin/update_swim_lists", "name_search=" + searchInputElement.value );
+}
