@@ -91,6 +91,14 @@
 		<input id="update_swims_input" value=""/>
 		<button onclick=updateSwims()>Update Swims</button>
 	</article>
+	<article>
+		<h2>Update Swim Lists</h2>
+		<p>Enter a family name or the starting letters of a family name to update swim lists for all matching swimmers.</p>
+		<p>Enter a single letter to update swim lists for all Winsford swimmers with a family name starting with that letter.</p>
+		<p>Enter a-c to update swim lists for all Winsford swimmers with a family name starting with a-c.</p>
+		<input id="update_swim_lists_input" value=""/>
+		<button onclick=updateSwimLists()>Update Swim Lists</button>
+	</article>
 
 	<article>
 		<button onclick='doAdminPost( "/admin/queue_update_all_swims", "" )'>Queue update of all swims for all swimmers</button>

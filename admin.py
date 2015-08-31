@@ -41,6 +41,7 @@ from swim import Swim
 from unofficialswim import UnofficialSwim
 from swim import scrape_swims
 from swim import scrape_personal_bests
+from swimlist import SwimList
 from event import Event
 from event import short_course_events
 from event import long_course_events
@@ -155,6 +156,23 @@ class QueueUpdateSwims(webapp2.RequestHandler):
     for swimmer in swimmers:
       self.response.out.write( "Queueing update of swims for " + swimmer.full_name() + "\n" )
       QueueUpdateSwimsForSwimmer( str( swimmer.asa_number ) )
+
+class UpdateSwimLists(webapp2.RequestHandler):
+  def post(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    
+    # Queue explicit updates
+    asa_numbers = self.request.get_all('asa_number')
+    for asa_number in asa_numbers:
+      self.response.out.write( "Updating swim list for " + asa_number + "\n" )
+      swimlist = SwimList.create( int( asa_number ) )
+      swimlist.put()
+
+    # Queue name searched updates
+    swimmers = GetNameMatchedSwimmers( self.request.get('name_search') )
+    for swimmer in swimmers:
+      self.response.out.write( "Queueing update of swim list for " + swimmer.full_name() + "\n" )
+      taskqueue.add(url='/admin/update_swim_lists', params={'asa_number': str( swimmer.asa_number ) })
     
 # Scrapes swimmingresults.org for PB swims for a particular swimmer in ALL events
 class UpdatePersonalBests(webapp2.RequestHandler):
@@ -398,6 +416,7 @@ app = webapp2.WSGIApplication([
   ('/admin/check_for_swimmer_upgrade', CheckSwimmerUpgrade),
   ('/admin/post_meet_results', PostMeetResults),
   ('/admin/update_club_records', UpdateClubRecords),
+  ('/admin/update_swim_lists', UpdateSwimLists),
   ('/admin/test', Test),
 ])
 
