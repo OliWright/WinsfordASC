@@ -29,6 +29,7 @@ import helpers
 
 from swimmer import Swimmer
 from swim import Swim
+from swimlist import SwimList
 from unofficialswim import UnofficialSwim
 from swim import ScrapeSplits
 from event import short_course_events
@@ -125,25 +126,27 @@ class GetSwimHistory(RequestHandler):
       return
     stroke_code_str = self.request.get('stroke_code')
     if stroke_code_str == '':
-      self.response.out.write( "Missing stroke_code" )
-      self.response.set_status( 400 )
-      return
-    distance_str = self.request.get('distance')
-    if distance_str == '':
-      self.response.out.write( "Missing distance" )
-      self.response.set_status( 400 )
-      return
-    asa_number = int(asa_number_str)
-    stroke_code = int(stroke_code_str)
-    distance = int(distance_str)
-    
-    swims = Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "S" ) )
-    swims.extend( Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "L" ) ) )
-    swims.extend( UnofficialSwim.fetch_all( asa_number, Event.create( stroke_code, distance, "S" ) ) )
-    swims.extend( UnofficialSwim.fetch_all( asa_number, Event.create( stroke_code, distance, "L" ) ) )
-    
-    for swim in swims:
-      self.response.out.write( str( swim ) + "\n" )
+      # If there's no stroke code, then we assume that we want the entire swim history
+      swimlist = SwimList.get( int(asa_number_str) )
+      if swimlist is not None:
+        self.response.out.write( str( swimlist ) )
+    else:
+      distance_str = self.request.get('distance')
+      if distance_str == '':
+        self.response.out.write( "Missing distance" )
+        self.response.set_status( 400 )
+        return
+      asa_number = int(asa_number_str)
+      stroke_code = int(stroke_code_str)
+      distance = int(distance_str)
+      
+      swims = Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "S" ) )
+      swims.extend( Swim.fetch_all( asa_number, Event.create( stroke_code, distance, "L" ) ) )
+      swims.extend( UnofficialSwim.fetch_all( asa_number, Event.create( stroke_code, distance, "S" ) ) )
+      swims.extend( UnofficialSwim.fetch_all( asa_number, Event.create( stroke_code, distance, "L" ) ) )
+      
+      for swim in swims:
+        self.response.out.write( str( swim ) + "\n" )
     
 app = webapp2.WSGIApplication([
   ('/personal_bests', PersonalBests),
