@@ -97,3 +97,46 @@ function updateSwimLists()
 	var searchInputElement = document.getElementById( "update_swim_lists_input" );
 	doAdminPost( "/admin/update_swim_lists", "name_search=" + searchInputElement.value );
 }
+
+function downloadSwimLists()
+{
+	var allSwimLists = "";
+	
+	var responseElement = document.getElementById( "server_response" );
+	responseElement.scrollIntoView();
+	responseElement.innerHTML = "<p>Request pending...</p>";
+	
+	for (i = 0; i < numSwimmers; i++)
+	{
+		var swimmer = swimmers[i];
+	
+		// Async request to server for swimmer list
+		var request = null;
+		request = new XMLHttpRequest();
+		request.onload = function (e)
+		{
+			console.log( 'Got swim list for ' + swimmer.getFullName() );
+			if( i != 0 )
+			{
+				// Add a blank line between swimmers
+				allSwimLists += '\n';
+			}
+			// Then the swimmer
+			allSwimLists += swimmer.toString();
+			allSwimLists += '\n';
+			// Then the swim list
+			if( this.responseText != null )
+			{
+				allSwimLists += this.responseText;
+			}
+		};
+		request.onerror = function (e)
+		{
+		  console.error(this.statusText);
+		};	
+		request.open( 'GET', '/swim_history?asa_number=' + swimmer.asa_number, false );
+		request.send();
+	}
+	
+	responseElement.innerHTML = '<p>' + allSwimLists + '</p>';
+}

@@ -35,6 +35,7 @@ function Swimmer( row, today )
 	this.last_name = tok[1];
 	this.first_name = tok[2];
 	this.known_as = tok[3];
+	this.as_text = row;
 	
 	this.calculateAgeAtDate = function ( date )
 	{
@@ -69,4 +70,9 @@ Swimmer.prototype.createHtml = function()
 	html += '<p>Date-of-Birth: ' + this.date_of_birth.toLocaleDateString() + '</p>';
 	html += '<p>Age: ' + this.age + '</p>';
 	return html;
+}
+
+Swimmer.prototype.toString = function()
+{
+	return this.as_text;
 }
