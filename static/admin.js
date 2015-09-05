@@ -125,9 +125,13 @@ function downloadSwimLists()
 			allSwimLists += swimmer.toString();
 			allSwimLists += '\n';
 			// Then the swim list
-			if( this.responseText != null )
+			if( this.responseText != '' )
 			{
 				allSwimLists += this.responseText;
+				if( i < (numSwimmers - 1) )
+				{
+					allSwimLists += '\n';
+				}
 			}
 		};
 		request.onerror = function (e)
