@@ -327,7 +327,14 @@ def _create_swim( swimmer, event, row, output ):
       logging.info( "Got swim link: " + str( asa_swim_id ) )
   swim = Swim.create( swimmer, event, date, meet, float( swim_time ), asa_swim_id );
   return swim
-      
+
+# Add multiple new swims to the database
+def _put_new_swims( swimmer, swims ):
+  ndb.put_multi( swims )
+  swim_list = SwimList.get( swimmer.asa_number )
+  if swim_list is not None:
+    swim_list.append_swims( swims )
+  
 def scrape_swims( swimmer, event, output ):
   # Parses this kind of page
   # http://www.swimmingresults.org/individualbest/personal_best_time_date.php?back=individualbest&tiref=892569&mode=A&tstroke=1&tcourse=S
@@ -360,7 +367,7 @@ def scrape_swims( swimmer, event, output ):
   swims = []
   for row in TableRows( table, swims_headers_of_interest ):
     swims.append( _create_swim( swimmer, event, row, output ) )
-  ndb.put_multi( swims )
+  _put_swims( swimmer, swims )
     
 pbs_headers_of_interest = ( "Swim Date", "Meet", "Time", "Stroke" )
     
@@ -416,7 +423,7 @@ def scrape_personal_bests( swimmer, output ):
         else:
           logging.error( "Failed to parse course length from " + course_text )
   if len( swims ) != 0:
-    ndb.put_multi( swims )
+    _put_swims( swimmer, swims )
 
 splits_headers_of_interest = ( "Distance", "Cumulative", "Incremental" )
     
