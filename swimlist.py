@@ -90,7 +90,7 @@ class SwimList(ndb.Model):
         if hash not in existing_swims:
           #logging.info( 'Appending ' + str(swim.event.event_code) + ', ' + str( swim.date ) + ': ' + str( hash ) )
           self.append_swim( swim, licensed )
-        else:
+        #else:
           #logging.info( 'Skipping ' + str(swim.event.event_code) + ', ' + str( swim.date ) + ': ' + str( hash ) )
     else:
       for swim in swims:
