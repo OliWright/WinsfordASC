@@ -39,8 +39,8 @@ from swimmer import Swimmer
 from swimmer_cat1 import SwimmerCat1
 from swim import Swim
 from unofficialswim import UnofficialSwim
-from swim import scrape_swims
-from swim import scrape_personal_bests
+from swim_parser import scrape_swims
+from swim_parser import scrape_personal_bests
 from swimlist import SwimList
 from event import Event
 from event import short_course_events

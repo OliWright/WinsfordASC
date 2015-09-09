@@ -31,7 +31,7 @@ from swimmer import Swimmer
 from swim import Swim
 from swimlist import SwimList
 from unofficialswim import UnofficialSwim
-from swim import ScrapeSplits
+from swim_parser import ScrapeSplits
 from event import short_course_events
 from event import long_course_events
 from event import Event
