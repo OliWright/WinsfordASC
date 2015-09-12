@@ -22,6 +22,9 @@
 
 import webapp2
 import datetime
+import logging
+import helpers
+
 from google.appengine.ext import ndb
 from swim import Swim
 from unofficialswim import UnofficialSwim
@@ -49,9 +52,49 @@ class SwimList(ndb.Model):
   def get(cls, asa_number):
     return cls.get_by_id( asa_number )
   
-  def append_swims(self, swims, licensed=True):
-    for swim in swims:
-      self.append_swim( swim, licensed )
+  def append_swims(self, swims, licensed=True, check_if_already_exist=False):
+    #logging.info( 'Appending ' + str( len( swims ) ) + ' swims' )
+    if check_if_already_exist:
+      # Iterate over the lines in self.swims, generating a hash
+      # for each swim based on event and date, and add them to a set
+      existing_swims = set()
+      def generate_swim_hash( event_code, date ):
+        return (date.toordinal() << 8) + event_code
+      prevnl = -1
+      if len( self.swims ) > 0:
+        while True:
+          # Skip the version
+          bar = self.swims.find('|', prevnl + 1)
+          # Skip the asa_number
+          bar = self.swims.find('|', bar + 1)
+          # Read the event code
+          nextbar = self.swims.find('|', bar + 1)
+          event_code = int( self.swims[bar + 1:nextbar])
+          # Read the date
+          bar = nextbar
+          nextbar = self.swims.find('|', bar + 1)
+          date = helpers.ParseDate_dmY( self.swims[bar + 1:nextbar])
+          
+          # Generate a hash and add it to the set 
+          hash = generate_swim_hash( event_code, date )
+          #logging.info( 'Swim hash for ' + str(event_code) + ', ' + str( date ) + ': ' + str( hash ) )
+          existing_swims.add( hash )
+      
+          nextnl = self.swims.find('\n', prevnl + 1)
+          if nextnl < 0: break
+          prevnl = nextnl  
+
+      # Now append the swims if they're not in the set already
+      for swim in swims:
+        hash = generate_swim_hash( swim.event.event_code, swim.date )
+        if hash not in existing_swims:
+          #logging.info( 'Appending ' + str(swim.event.event_code) + ', ' + str( swim.date ) + ': ' + str( hash ) )
+          self.append_swim( swim, licensed )
+        else:
+          #logging.info( 'Skipping ' + str(swim.event.event_code) + ', ' + str( swim.date ) + ': ' + str( hash ) )
+    else:
+      for swim in swims:
+        self.append_swim( swim, licensed )
     
   def append_swim(self, swim, licensed=True):
     swim_str = swim.data
