@@ -74,6 +74,7 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
   if page_number == 1:
     # When scraping the first page, one of our jobs is to count how many other pages
     # there are and add tasks to scrape those pages
+    meet_has_been_parsed( asa_meet_code )
     num_pages = scrape_num_pages( tree )
     logging.info( "Meet contains " + str( num_pages ) + " pages ")
     date_str = date.strftime( "%d/%m/%y" )
@@ -175,6 +176,6 @@ def scrape_new_meets( page = 1 ):
           if row[3].text == "LC":
             course_code = "L"
           logging.info( "Got new meet: " + meet_name + ", code: " + str( asa_meet_code ) )
-          taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code })
+          taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code, 'page' : '1' })
 
           
