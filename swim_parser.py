@@ -1,8 +1,6 @@
 # Winsford ASC Google AppEngine App
-#   swim.py
-#   Provides the Swim ndb model, which encapsulates all data for an
-#   individual's performance in a single race, including split
-#   times when available.
+#   swim_parser.py
+#   Scrapes swims from www.swimmingresults.org
 #
 # Copyright (C) 2014 Oliver Wright
 #    oli.wright.github@gmail.com
@@ -49,28 +47,39 @@ from swimlist import SwimList
       
 swims_headers_of_interest = ( "Swim Date", "Meet", "Time" )
 
+def get_asa_swim_id( race_time_cell ):
+  if race_time_cell.link is not None:
+    # Parse the link which is of the form /splits/?swimid=8349902 to extract the swimid
+    pos = race_time_cell.link.find( "swimid=" )
+    if pos != -1:
+      asa_swim_id = int( race_time_cell.link[pos + 7:] )
+      logging.info( "Got swim link: " + str( asa_swim_id ) )
+      return asa_swim_id
+
 # Private helper to scrape a Swim from a pre-parsed table row from a swimmingresults.org page
 def _create_swim( swimmer, event, row, output ):
   date = helpers.ParseDate_dmy( row[0].text )
   meet = row[1].text
   swim_time = RaceTime( row[2].text )
   output.write( "Event: " + str(event) + ", Date: " + row[0].text + ", Meet: " + meet + ", Time: " + str( swim_time ) + "\n" )
-  asa_swim_id = None;
-  if row[2].link is not None:
-    # Parse the link which is of the form /splits/?swimid=8349902 to extract the swimid
-    pos = row[2].link.find( "swimid=" )
-    if pos != -1:
-      asa_swim_id = int( row[2].link[pos + 7:] )
-      logging.info( "Got swim link: " + str( asa_swim_id ) )
-  swim = Swim.create( swimmer, event, date, meet, float( swim_time ), asa_swim_id );
+  asa_swim_id = get_asa_swim_id( row[2] );
+  swim = Swim.create( swimmer.asa_number, swimmer.date_of_birth, event, date, meet, float( swim_time ), asa_swim_id );
   return swim
 
 # Add multiple new swims to the database
-def _put_new_swims( swimmer, swims ):
+def put_new_swims( asa_number, swims ):
   ndb.put_multi( swims )
   #logging.info( 'Putting ' + str( len( swims ) ) + ' swims' )
-  swim_list = SwimList.get( swimmer.asa_number )
-  if swim_list is not None:
+  swim_list = SwimList.get( asa_number )
+  if swim_list is None:
+    # There wasn't a SwimList for this Swimmer yet.
+    # Create one.  This will initialise it with all Swims, including
+    # the ones we've just added.
+    swim_list = SwimList.create( asa_number )
+    swim_list.put()
+  else:
+    # There was a pre-existing SwimList for this Swimmer.
+    # Append the new Swims.
     swim_list.append_swims( swims, licensed=True, check_if_already_exist=True )
     swim_list.put()
   
@@ -106,7 +115,7 @@ def scrape_swims( swimmer, event, output ):
   swims = []
   for row in TableRows( table, swims_headers_of_interest ):
     swims.append( _create_swim( swimmer, event, row, output ) )
-  _put_new_swims( swimmer, swims )
+  put_new_swims( swimmer.asa_number, swims )
     
 pbs_headers_of_interest = ( "Swim Date", "Meet", "Time", "Stroke" )
     
@@ -162,11 +171,11 @@ def scrape_personal_bests( swimmer, output ):
         else:
           logging.error( "Failed to parse course length from " + course_text )
   if len( swims ) != 0:
-    _put_new_swims( swimmer, swims )
+    put_new_swims( swimmer.asa_number, swims )
 
 splits_headers_of_interest = ( "Distance", "Cumulative", "Incremental" )
     
-def ScrapeSplits( swim ):
+def scrape_splits( swim ):
   # Parses this kind of page and adds the results to the swim
   # http://www.swimmingresults.org/splits/?swimid=9744866
   

@@ -256,13 +256,16 @@ class Swim(ndb.Model):
       return None
     return self.asa_swim_id
     
+  # Swim creation that takes a swimmer asa number and date-of-birth for cases where
+  # we don't have a Swimmer (like when we're scraping a meet and we encounter a swimmer for
+  # the first time, or one that needs upgrading from Cat 1)
   @classmethod
-  def create(cls, swimmer, event, date, meet, race_time, asa_swim_id = None):
-    key = create_parent_key( swimmer.asa_number, event )
-    id = compute_swim_key_id( date, swimmer.asa_number, event )
+  def create(cls, asa_number, date_of_birth, event, date, meet, race_time, asa_swim_id = None):
+    key = create_parent_key( asa_number, event )
+    id = compute_swim_key_id( date, asa_number, event )
 
-    age_on_day = helpers.CalcAge( swimmer.date_of_birth, date )
-    data = cls.pack_data( swimmer.asa_number, event, date, meet, asa_swim_id )
+    age_on_day = helpers.CalcAge( date_of_birth, date )
+    data = cls.pack_data( asa_number, event, date, meet, asa_swim_id )
     swim = cls( parent = key, id = id, age_on_day = age_on_day, race_time = race_time, data = data )
     swim.unpack_data()
     return swim
