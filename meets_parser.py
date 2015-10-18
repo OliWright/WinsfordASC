@@ -175,6 +175,6 @@ def scrape_new_meets( page = 1 ):
           if row[3].text == "LC":
             course_code = "L"
           logging.info( "Got new meet: " + meet_name + ", code: " + str( asa_meet_code ) )
-          taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code })
+          taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code, 'page' : '1' })
 
           
