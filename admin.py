@@ -401,6 +401,9 @@ class UpdateClubRecords(webapp2.RequestHandler):
     StaticData.set_club_records( club_records )
             
 class UpdateNewMeets(webapp2.RequestHandler):
+  def get(self):
+    scrape_new_meets()
+    
   def post(self):
     scrape_new_meets()
             
