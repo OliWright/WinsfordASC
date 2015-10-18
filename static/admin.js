@@ -98,6 +98,12 @@ function updateSwimLists()
 	doAdminPost( "/admin/update_swim_lists", "name_search=" + searchInputElement.value );
 }
 
+function nukeSwimmer()
+{
+	var nukeInputElement = document.getElementById( "nuke_swimmer_input" );
+	doAdminPost( "/admin/nuke_swimmer", "asa_number=" + nukeInputElement.value );
+}
+
 function downloadSwimLists()
 {
 	var allSwimLists = "";

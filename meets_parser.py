@@ -65,6 +65,7 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
     logging.error( "Failed to get page " + url )
     return 503
   tree = html.fromstring( page )
+  meet_has_been_parsed( asa_meet_code )
   try:
     table = tree.get_element_by_id( "rankTable" )
   except:
@@ -74,7 +75,6 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
   if page_number == 1:
     # When scraping the first page, one of our jobs is to count how many other pages
     # there are and add tasks to scrape those pages
-    meet_has_been_parsed( asa_meet_code )
     num_pages = scrape_num_pages( tree )
     logging.info( "Meet contains " + str( num_pages ) + " pages ")
     date_str = date.strftime( "%d/%m/%y" )
@@ -148,6 +148,7 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
 _meets_headers_of_interest = ( "License", "Meet Name", "Date", "Pool" )
     
 def scrape_new_meets( page = 1 ):
+  logging.info( "Looking for new meets" )
   # Loads https://www.swimmingresults.org/showmeetsbyclub/ and
   # adds a task to scrape each meet listed that we haven't already parsed
   url = "https://www.swimmingresults.org/showmeetsbyclub/?page=" + str(page)
