@@ -454,7 +454,7 @@ class ScrapeSplits(webapp2.RequestHandler):
     
 class Test(webapp2.RequestHandler):
   def post(self):
-    scrape_new_meets( page=2 )
+    scrape_new_meets( page=3 )
     #taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(19611), 'meet_name' : 'North Midlands Championships 2015', 'date' : '03/10/15', 'course_code' : 'S', 'page' : '1' })
     
 app = webapp2.WSGIApplication([

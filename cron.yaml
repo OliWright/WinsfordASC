@@ -1,0 +1,5 @@
+cron:
+- description: Scrape new meets
+  url: /admin/queue_update_new_meets
+  schedule: every 24 hours 15:30
+  timezone: GB
