@@ -452,6 +452,41 @@ class ScrapeSplits(webapp2.RequestHandler):
       return
     scrape_splits( swim )
     
+   
+class NukeSwimmer(webapp2.RequestHandler):
+  def post(self):
+    asa_number_str = self.request.get('asa_number')
+    if (asa_number_str is None) or (len( asa_number_str ) == 0):
+      logging.error( "Missing asa_number in swimmer nuke request." )
+      self.response.set_status( 400 )
+      return
+    asa_number = int( asa_number_str )
+    logging.info( "Nuking " + asa_number_str )
+
+    keys_to_delete = []
+
+    # A couple of local helper functions
+    def delete_swims( swims ):
+      for swim in swims:
+        keys_to_delete.append( swim.key )
+    def delete_model( model ):
+      if model is not None:
+        keys_to_delete.append( model.key )
+
+    # Nuke all the swims
+    for event in short_course_events:
+      delete_swims( Swim.fetch_all( asa_number, event ) )
+    for event in long_course_events:
+      delete_swims( Swim.fetch_all( asa_number, event ) )
+
+    # And everything else
+    delete_model( SwimList.get( asa_number ) )
+    delete_model( Swimmer.get( "Winsford", asa_number ) )
+    delete_model( SwimmerCat1.get( "Winsford", asa_number ) )
+      
+    ndb.delete_multi( keys_to_delete )
+    
+
 class Test(webapp2.RequestHandler):
   def post(self):
     scrape_new_meets( page=3 )
@@ -474,6 +509,7 @@ app = webapp2.WSGIApplication([
   ('/admin/queue_update_new_meets', UpdateNewMeets),
   ('/admin/scrape_meet', ScrapeMeet),
   ('/admin/scrape_splits', ScrapeSplits),
+  ('/admin/nuke_swimmer', NukeSwimmer),
   ('/admin/test', Test),
 ])
 

@@ -148,6 +148,7 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
 _meets_headers_of_interest = ( "License", "Meet Name", "Date", "Pool" )
     
 def scrape_new_meets( page = 1 ):
+  logging.info( "Looking for new meets" )
   # Loads https://www.swimmingresults.org/showmeetsbyclub/ and
   # adds a task to scrape each meet listed that we haven't already parsed
   url = "https://www.swimmingresults.org/showmeetsbyclub/?page=" + str(page)

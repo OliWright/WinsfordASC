@@ -84,6 +84,12 @@
 		<button onclick='doAdminPost( "/admin/queue_check_for_all_swimmer_upgrades", "" )'()>Queue Cat1 to Cat2 upgrade check for all Cat1 swimmers.</button>
 	</article>
 	<article>
+		<h2>Nuke Swimmer</h2>
+		<p>Enter an ASA swimmer number to completely nuke that swimmer from the database.</p>
+		<input id="nuke_swimmer_input" value=""/>
+		<button onclick=nukeSwimmer()>Nuke</button>
+	</article>
+	<article>
 		<h2>Update Swims</h2>
 		<p>Enter a family name or the starting letters of a family name to update swims for all matching swimmers.</p>
 		<p>Enter a single letter to update swims for all Winsford swimmers with a family name starting with that letter.</p>
