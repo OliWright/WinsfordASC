@@ -31,7 +31,7 @@ from swimmer import Swimmer
 from swim import Swim
 from swimlist import SwimList
 from unofficialswim import UnofficialSwim
-from swim_parser import ScrapeSplits
+from swim_parser import scrape_splits
 from event import short_course_events
 from event import long_course_events
 from event import Event
@@ -110,7 +110,7 @@ class GetSwimDetails(RequestHandler):
       # split times available for it.
       if not hasattr(swim, 'splits' ):
         # Try and get them from swimmingresults.org
-        ScrapeSplits( swim )
+        scrape_splits( swim )
 
     self.response.out.write( str( swim ) )
 

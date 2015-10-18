@@ -48,6 +48,9 @@ from event import long_course_events
 from swimmer_parser import scrape_swimmer
 from swimmer_parser import scrape_swimmers
 from swimmer_parser import check_swimmer_upgrade
+from swimmer_parser import check_swimmer_upgrade
+from meets_parser import scrape_new_meets
+from meets_parser import scrape_meet
 from static_data import StaticData
 from race_time import RaceTime
 
@@ -59,6 +62,7 @@ def UpdateSwimsForEvent( swimmer, event, output ):
   if ret is not None:
     # Error
     return ret
+    
 def UpdateSwimsForEvents( swimmer, events, output ):
   for event in events:
     ret = UpdateSwimsForEvent( swimmer, event, output )
@@ -93,12 +97,24 @@ class UpdateSwims(webapp2.RequestHandler):
   def post(self):
     self.response.headers['Content-Type'] = 'text/plain'
     asa_numbers = self.request.get_all('asa_number')
-    course_code = self.request.get('course')
+    if len(asa_numbers) == 0:
+      logging.error( "Missing asa_number(s) in swim update request." )
+      self.response.set_status( 400 )
+      return
+    course_code = self.request.get('course',default_value=None)
+    event_code = self.request.get('event',default_value=None)
+    if (course_code is None) and (event_code is None):
+      # This is a full update request.
+      # We can't handle that here, so instead we queue up lots of smaller requests.
+      for asa_number in asa_numbers:
+        QueueUpdateSwimsForSwimmer( asa_number )
+      return
+      
     if course_code is None:
       logging.error( "Missing course code in swim update request" )
       self.response.set_status( 400 )
       return
-    event_code = self.request.get('event')
+      
     event = None
     if event_code is not None:
       event_code = int( event_code )
@@ -382,26 +398,63 @@ class UpdateClubRecords(webapp2.RequestHandler):
           club_records += ( gender_code + '^' + str(record.age) +'^' + str(event_code) + '^'+ swimmer.full_name() + '^' + str(swim) + '\n' )
     self.response.out.write( club_records )
     StaticData.set_club_records( club_records )
-        
+            
+class UpdateNewMeets(webapp2.RequestHandler):
+  def post(self):
+    scrape_new_meets()
+            
+class ScrapeMeet(webapp2.RequestHandler):
+  def post(self):
+    asa_meet_code_str = self.request.get('asa_meet_code')
+    if (asa_meet_code_str is None) or (len( asa_meet_code_str ) == 0):
+      logging.error( "Missing asa_meet_code in meet update request." )
+      self.response.set_status( 400 )
+      return
+    meet_name = self.request.get('meet_name')
+    if (meet_name is None) or (len( meet_name ) == 0):
+      logging.error( "Missing meet_name in meet update request." )
+      self.response.set_status( 400 )
+      return
+    date_str = self.request.get('date')
+    if (date_str is None) or (len( date_str ) == 0):
+      logging.error( "Missing date in meet update request." )
+      self.response.set_status( 400 )
+      return
+    course_code = self.request.get('course_code')
+    if (course_code is None) or (len( course_code ) == 0):
+      logging.error( "Missing course_code in meet update request." )
+      self.response.set_status( 400 )
+      return
+    page_str = self.request.get('page')
+    if (page_str is None) or (len( page_str ) == 0):
+      logging.error( "Missing page in meet update request." )
+      self.response.set_status( 400 )
+      return
+   
+    asa_meet_code = int(asa_meet_code_str)
+    date = helpers.ParseDate_dmy( date_str )
+    page = int(page_str)
+    logging.info( str( type( page ) ) )
+    
+    scrape_meet( asa_meet_code, page, meet_name, date, course_code )
+            
+class ScrapeSplits(webapp2.RequestHandler):
+  def post(self):
+    swim_key_str = self.request.get('swim')
+    if (swim_key_str is None) or (len( swim_key_str ) == 0):
+      logging.error( "Missing swim key in splits scrape request." )
+      self.response.set_status( 400 )
+      return
+    swim = Swim.get_from_key_str( swim_key_str )
+    if swim is None:
+      logging.error( "Asked to add splits to a swim that doesn't exist." )
+      self.response.set_status( 400 )
+      return
+    scrape_splits( swim )
+    
 class Test(webapp2.RequestHandler):
   def post(self):
-    full_name = "Gracie  (Gracie) Griffin"
-    full_name = re.sub(' +',' ',full_name)
-    name_tokens = full_name.split( " " )
-    len_name_tokens = len( name_tokens )
-    if len_name_tokens == 2:
-      self.first_name = name_tokens[0]
-      self.last_name = name_tokens[1]
-      self.nick_name = self.first_name
-    elif len_name_tokens == 3:
-      self.first_name = name_tokens[0]
-      self.nick_name = name_tokens[1][1:len(name_tokens[1])-2]
-      self.last_name = name_tokens[2]
-    else:
-      # Well this is awkward
-      logging.error( "Failed to parse swimmer's full name: " + full_name )
-    logging.info( "Parsed " + self.first_name + ", " + self.last_name + ", " + self.nick_name )
-      
+    taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(19611), 'meet_name' : 'North Midlands Championships 2015', 'date' : '03/10/15', 'course_code' : 'S', 'page' : '1' })
     
 app = webapp2.WSGIApplication([
   ('/admin/update_swimmers', UpdateSwimmers),
@@ -417,6 +470,9 @@ app = webapp2.WSGIApplication([
   ('/admin/post_meet_results', PostMeetResults),
   ('/admin/update_club_records', UpdateClubRecords),
   ('/admin/update_swim_lists', UpdateSwimLists),
+  ('/admin/queue_update_new_meets', UpdateNewMeets),
+  ('/admin/scrape_meet', ScrapeMeet),
+  ('/admin/scrape_splits', ScrapeSplits),
   ('/admin/test', Test),
 ])
 

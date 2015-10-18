@@ -84,9 +84,13 @@ class TableRows:
       idx = 0
       for interesting_heading in headers_of_interest:
         if heading == interesting_heading:
+          #logging.info( "Found interesting header: " + heading )
           heading_type = idx
           break;
+        #logging.info( "No match: " + heading + ", " + interesting_heading )
         idx = idx + 1
+      #if heading_type == -1:
+        #logging.info( "Uninteresting header: " + heading )
       self.heading_types.append( heading_type )
 
   def __iter__(self):
