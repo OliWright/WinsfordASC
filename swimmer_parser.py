@@ -138,6 +138,7 @@ def scrape_swimmer( club, asa_number, response, first_name=None, last_name=None,
         # Create a new Cat1 Swimmer object and add it to the database
         swimmer = SwimmerCat1.create( asa_number, club, first_name, last_name )
         swimmer.put()
+      logging.info( "Updated " + extra_swimmer_data.cat + " " + extra_swimmer_data.gender + " swimmer " + swimmer.full_name() + ". ASA Number: " + str(asa_number) + "\n" )
       response.out.write( "Updated " + extra_swimmer_data.cat + " " + extra_swimmer_data.gender + " swimmer " + swimmer.full_name() + ". ASA Number: " + str(asa_number) + "\n" )
 
 def check_swimmer_upgrade( club, asa_number, response ):

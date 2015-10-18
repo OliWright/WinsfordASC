@@ -40,6 +40,7 @@ from swimmer_cat1 import SwimmerCat1
 from swim import Swim
 from unofficialswim import UnofficialSwim
 from swim_parser import scrape_swims
+from swim_parser import scrape_splits
 from swim_parser import scrape_personal_bests
 from swimlist import SwimList
 from event import Event
@@ -434,7 +435,6 @@ class ScrapeMeet(webapp2.RequestHandler):
     asa_meet_code = int(asa_meet_code_str)
     date = helpers.ParseDate_dmy( date_str )
     page = int(page_str)
-    logging.info( str( type( page ) ) )
     
     scrape_meet( asa_meet_code, page, meet_name, date, course_code )
             
