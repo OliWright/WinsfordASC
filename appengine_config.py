@@ -255,3 +255,7 @@ def appstats_extract_key(request):
 
 remoteapi_CUSTOM_ENVIRONMENT_AUTHENTICATION = (
      'HTTP_X_APPENGINE_INBOUND_APPID', ['winsford-club-records'])
+
+# Add any libraries installed in the "lib" folder.
+from google.appengine.ext import vendor
+vendor.add('lib')     

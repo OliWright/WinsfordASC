@@ -32,7 +32,11 @@ class StaticData(ndb.Model):
 
   @classmethod
   def get_swimmer_list( cls ):
-    return swimmer_list_key.get().data
+    swimmer_list = swimmer_list_key.get()
+    if swimmer_list is None:
+      swimmer_list = cls( key = swimmer_list_key, data = "" )
+      swimmer_list.put()
+    return swimmer_list.data
 
   # Query the Swimmer model and update the single entry containing the entire swimmer list
   @classmethod

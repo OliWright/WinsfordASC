@@ -65,3 +65,5 @@ libraries:
   version: "2.5.2"
 - name: lxml
   version: latest
+- name: pycrypto
+  version: latest

@@ -204,6 +204,7 @@ class Swim(ndb.Model):
       if len( tokens[4] ) > 0:
         self.asa_swim_id = int( tokens[4] )
       # Ignore any splits data in version 0 because it's most likely nonsense
+      self.splits_str = ""
     else:
       # Version 1 or higher data.
       # Token 0 is the version number.
@@ -216,9 +217,11 @@ class Swim(ndb.Model):
       if tokens[6] == "-":
         # There are no splits available from the ASA for this swim
         self.splits = []
+        self.splits_str = ""
       else:
         split_times_from_asa = []
         splits = tokens[6].split( "," )
+        self.splits_str = tokens[6]
         if len(splits) > 1:
           #logging.info( "T:" + tokens[6] + "N: " + str( len(splits) ) )
           for split in splits:

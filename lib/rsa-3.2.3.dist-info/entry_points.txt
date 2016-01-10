@@ -1,0 +1,10 @@
+[console_scripts]
+pyrsa-keygen = rsa.cli:keygen
+pyrsa-decrypt-bigfile = rsa.cli:decrypt_bigfile
+pyrsa-decrypt = rsa.cli:decrypt
+pyrsa-priv2pub = rsa.util:private_to_public
+pyrsa-encrypt-bigfile = rsa.cli:encrypt_bigfile
+pyrsa-encrypt = rsa.cli:encrypt
+pyrsa-sign = rsa.cli:sign
+pyrsa-verify = rsa.cli:verify
+

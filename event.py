@@ -41,14 +41,15 @@ strokeDistanceAndTurnFactors = (
 (3, 50,   40.5  ),
 (3, 100,  40.5  ),
 (3, 200,  41.98 ),
-(4, 200,  55.366),
-(4, 400,  45    ),
-(4, 100,  49.7  )
+(4, 200,  49.7  ),
+(4, 400,  55.366 ),
+(4, 100,  45  )
 )
 
 stroke_id_to_string = ( "Freestyle", "Breaststroke", "Butterfly", "Backstroke", "IM" )
 stroke_id_to_short_string = ( "Free", "Breast", "Fly", "Back", "IM" )
 course_id_to_string = ( "Short", "Long" )
+course_id_to_short_string = ( "SC", "LC" )
 
 class Event:
   """Encapsulation of a swimming event type and course"""
@@ -121,6 +122,9 @@ class Event:
     stroke_id = strokeDistanceAndTurnFactor[0]
     distance = strokeDistanceAndTurnFactor[1]
     return str( distance ) + " " + stroke_id_to_short_string[ stroke_id ]
+
+  def short_name(self):
+    return self.short_name_without_course() + " " + course_id_to_short_string[ self.event_code >> 8 ]
     
   def key(self):
     return self.event_code + 1

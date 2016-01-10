@@ -489,11 +489,9 @@ class NukeSwimmer(webapp2.RequestHandler):
       
     ndb.delete_multi( keys_to_delete )
     
-
 class Test(webapp2.RequestHandler):
   def post(self):
-    scrape_new_meets( page=3 )
-    #taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(19611), 'meet_name' : 'North Midlands Championships 2015', 'date' : '03/10/15', 'course_code' : 'S', 'page' : '1' })
+    pass
     
 app = webapp2.WSGIApplication([
   ('/admin/update_swimmers', UpdateSwimmers),
