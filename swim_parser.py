@@ -68,11 +68,11 @@ def _create_swim( swimmer, event, row, output ):
 
 # Add multiple new swims to the database
 def put_new_swims( asa_number, swims ):
-  ndb.put_multi( swims )
   #logging.info( 'Putting ' + str( len( swims ) ) + ' swims' )
   swim_list = SwimList.get( asa_number )
   if swim_list is None:
     # There wasn't a SwimList for this Swimmer yet.
+    ndb.put_multi( swims )
     # Create one.  This will initialise it with all Swims, including
     # the ones we've just added.
     swim_list = SwimList.create( asa_number )
@@ -80,8 +80,9 @@ def put_new_swims( asa_number, swims ):
   else:
     # There was a pre-existing SwimList for this Swimmer.
     # Append the new Swims.
-    swim_list.append_swims( swims, licensed=True, check_if_already_exist=True )
+    new_swims = swim_list.append_swims( swims, licensed=True, check_if_already_exist=True )
     swim_list.put()
+    ndb.put_multi( new_swims )
   
 def scrape_swims( swimmer, event, output ):
   # Parses this kind of page

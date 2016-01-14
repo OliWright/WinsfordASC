@@ -179,4 +179,43 @@ def scrape_new_meets( page = 1 ):
           logging.info( "Got new meet: " + meet_name + ", code: " + str( asa_meet_code ) )
           taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code, 'page' : '1' })
 
-          
+    
+def rescrape_meet( url, meet_code ):
+  logging.info( "Looking for meet " + str(meet_code) )
+  # Loads https://www.swimmingresults.org/showmeetsbyclub/ and
+  # adds a task to scrape each meet listed that we haven't already parsed
+  page = helpers.FetchUrl( url )
+
+  if page is None:
+    logging.error( "Failed to get page " + url )
+    return 503
+  tree = html.fromstring( page )
+  try:
+    table = tree.get_element_by_id( "rankTable" )
+  except:
+    logging.error( "Missing rankTable at " + url )
+    return 500
+  
+  found_meet = False
+  for row in TableRows( table, _meets_headers_of_interest ):
+    if row[0].link is not None:
+      # Parse the link which is of the form ?targetyear=2015&masters=0&pgm=1&meetcode=16145 to extract the meetcode
+      pos = row[0].link.find( "meetcode=" )
+      if pos != -1:
+        asa_meet_code = int( row[0].link[pos + 9:] )
+        if asa_meet_code == meet_code:
+          meet_name = row[1].text
+          date_str = row[2].text
+          course_code = "S"
+          if row[3].text == "LC":
+            course_code = "L"
+          logging.info( "Found meet: " + meet_name + ", code: " + str( asa_meet_code ) )
+          taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code, 'page' : '1' })
+          found_meet = True
+          break
+            
+  if not found_meet:
+    logging.error( "Unable to find meet code " + str(meet_code) + " at " + url )
+    return 404
+    
+  return 200

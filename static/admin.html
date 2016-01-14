@@ -109,7 +109,12 @@
 		<h2>Download all Swim Lists</h2>
 		<button onclick=downloadSwimLists()>Download Swim Lists</button>
 	</article>
-
+	<article>
+		<h2>Re-Scrape Meet</h2>
+		<p>URL of the page containing the meet we're interested in.</p><input id="rescrape_meet_url" value="https://www.swimmingresults.org/showmeetsbyclub/"/>
+		<p>ASA meet code.</p><input id="rescrape_meet_code" value=""/>
+		<button onclick=rescrapeMeet()>Re-Scrape Meet</button>
+	</article>
 	<article>
 		<button onclick='doAdminPost( "/admin/queue_update_all_swims", "" )'>Queue update of all swims for all swimmers</button>
 		<button onclick='doAdminPost( "/admin/queue_update_all_personal_bests", "" )'>Queue update of all personal bests for all swimmers</button>

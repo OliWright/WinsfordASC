@@ -47,9 +47,9 @@ from event import long_course_events
 _NUM_WORKSHEET_COLUMNS = 7
 
 scope = 'https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
-credentials = AppAssertionCredentials( scope )
+credentials = None
 # Get the app's credentials scpoed to access google sheets and initialise gspread
-gc = gspread.authorize( credentials )
+gc = None
 
 def _get_spreadsheet():
   # Open the swim data spreadsheet.
@@ -57,6 +57,9 @@ def _get_spreadsheet():
   #    google-apps-service@winsford-asc.iam.gserviceaccount.com   To be able to work in the dev environment
   #    winsford-asc@appspot.gserviceaccount.com                   To be able to work in the production environment
   logging.info( "Attempting to access google sheet swim database" )
+  credentials = AppAssertionCredentials( scope )
+  # Get the app's credentials scpoed to access google sheets and initialise gspread
+  gc = gspread.authorize( credentials )
   try:
     sheet = gc.open_by_key( "1nXyDM4GeVDKWE45RI3SdHioTUcch1NSQhRAuBtX3rrA" )
     return sheet
@@ -128,11 +131,16 @@ class SwimList(ndb.Model):
       # Iterate over the lines in self.swims, generating a hash
       # for each swim based on event and date, and add them to a set
       existing_swims = set()
-      def generate_swim_hash( event_code, date ):
-        return (date.toordinal() << 8) + event_code
+      
       prevnl = -1
-      if len( self.swims ) > 0:
+      full_length = len( self.swims )
+      if full_length > 0:
         while True:
+          nextnl = self.swims.find('\n', prevnl + 1)
+          line_end = nextnl
+          if line_end < 0:
+            line_end = full_length
+        
           # Skip the version
           bar = self.swims.find('|', prevnl + 1)
           # Skip the asa_number
@@ -143,29 +151,38 @@ class SwimList(ndb.Model):
           # Read the date
           bar = nextbar
           nextbar = self.swims.find('|', bar + 1)
-          date = helpers.ParseDate_dmY( self.swims[bar + 1:nextbar])
+          #date = helpers.ParseDate_dmY( self.swims[bar + 1:nextbar])
+          # Read the meet
+          bar = nextbar
+          nextbar = self.swims.find('|', bar + 1)
+          meet = self.swims[bar + 1:nextbar]
+          # Read the time
+          bar = line_end - 1
+          while self.swims[bar] != '|':
+            bar = bar - 1
+          race_time_str = self.swims[bar + 1:line_end]
           
           # Generate a hash and add it to the set 
-          hash = generate_swim_hash( event_code, date )
-          #logging.info( 'Swim hash for ' + str(event_code) + ', ' + str( date ) + ': ' + str( hash ) )
-          existing_swims.add( hash )
+          hash_value = hash( (event_code, meet, float(race_time_str) ) )
+          #logging.info( 'Swim hash for ' + str(event_code) + ', ' + meet + ': ' + str( hash_value ) )
+          existing_swims.add( hash_value )
       
-          nextnl = self.swims.find('\n', prevnl + 1)
           if nextnl < 0: break
           prevnl = nextnl  
 
       # Make a new list of swims that aren't in the set
-      new_swims = []
+      added_swims = []
       # Now append the swims if they're not in the set already
       for swim in swims:
-        hash = generate_swim_hash( swim.event.event_code, swim.date )
-        if hash not in existing_swims:
-          #logging.info( 'Appending ' + str(swim.event.event_code) + ', ' + str( swim.date ) + ': ' + str( hash ) )
-          new_swims.append( swim )
+        hash_value = hash( (swim.event.event_code, swim.meet, swim.race_time ) )
+        if hash_value not in existing_swims:
+          #logging.info( 'Appending ' + str(swim.event.event_code) + ', ' + str( swim.meet ) + ': ' + str( hash_value ) )
+          added_swims.append( swim )
         #else:
           #logging.info( 'Skipping ' + str(swim.event.event_code) + ', ' + str( swim.date ) + ': ' + str( hash ) )
           
-      self.append_swims( new_swims, licensed = licensed, check_if_already_exist = False, sheet = sheet )
+      self.append_swims( added_swims, licensed = licensed, check_if_already_exist = False, sheet = sheet )
+      return added_swims
     else:
       num_swims = len( swims )
       if num_swims > 0:
@@ -207,7 +224,8 @@ class SwimList(ndb.Model):
             #logging.info( "Adding rows" )
             ws.append_rows( rows )
             #logging.info( "Finished adding rows" )
-    
+      return swims
+      
   # Append an individual swim to a SwimList
   def _append_swim(self, swim, licensed=True):
     swim_str = swim.data

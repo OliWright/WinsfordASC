@@ -52,6 +52,7 @@ from swimmer_parser import check_swimmer_upgrade
 from swimmer_parser import check_swimmer_upgrade
 from meets_parser import scrape_new_meets
 from meets_parser import scrape_meet
+from meets_parser import rescrape_meet
 from static_data import StaticData
 from race_time import RaceTime
 
@@ -440,6 +441,24 @@ class ScrapeMeet(webapp2.RequestHandler):
     page = int(page_str)
     
     scrape_meet( asa_meet_code, page, meet_name, date, course_code )
+    
+class ReScrapeMeet(webapp2.RequestHandler):
+  def post(self):
+    url = self.request.get('url')
+    meet_code_str = self.request.get('meet_code')
+    logging.info( "URL: " + url )
+    self.response.headers['Content-Type'] = 'text/plain'
+    if (url is None) or (len( url ) == 0) or (meet_code_str is None) or (len( meet_code_str ) == 0):
+      logging.error( "Missing url or meet_code in rescrape_meet request." )
+      self.response.set_status( 400 )
+      self.response.out.write( "Missing url or meet_code in rescrape_meet request." )
+      return
+    status = rescrape_meet( url, int( meet_code_str ) );
+    self.response.set_status( status )
+    if status == 200:
+      self.response.out.write( "Meet scrape queued." )
+    else:
+      self.response.out.write( "Error looking for meet. See log." )
             
 class ScrapeSplits(webapp2.RequestHandler):
   def post(self):
@@ -509,6 +528,7 @@ app = webapp2.WSGIApplication([
   ('/admin/update_swim_lists', UpdateSwimLists),
   ('/admin/queue_update_new_meets', UpdateNewMeets),
   ('/admin/scrape_meet', ScrapeMeet),
+  ('/admin/rescrape_meet', ReScrapeMeet),
   ('/admin/scrape_splits', ScrapeSplits),
   ('/admin/nuke_swimmer', NukeSwimmer),
   ('/admin/test', Test),

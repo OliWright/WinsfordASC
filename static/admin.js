@@ -150,3 +150,11 @@ function downloadSwimLists()
 	
 	responseElement.innerHTML = '<p>' + allSwimLists + '</p>';
 }
+
+function rescrapeMeet()
+{
+	var urlElement = document.getElementById( "rescrape_meet_url" );
+	var meetCodeElement = document.getElementById( "rescrape_meet_code" );
+	var encodedUrl = encodeURIComponent(urlElement.value);
+	doAdminPost( "/admin/rescrape_meet", "url=" + encodedUrl + "&meet_code=" + meetCodeElement.value );
+}
