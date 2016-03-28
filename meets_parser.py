@@ -37,6 +37,8 @@ import datetime
 import helpers
 from google.appengine.api import taskqueue
 from event import Event
+from event import short_course_events
+from event import long_course_events
 from lxml import html
 from lxml import etree
 from table_parser import TableRows
@@ -47,12 +49,20 @@ from swim import Swim
 from swimlist import SwimList
 from parsed_meet import has_meet_been_parsed
 from parsed_meet import meet_has_been_parsed
-# from admin import QueueUpdateSwimsForSwimmer
 from swim_parser import put_new_swims
 from swim_parser import get_asa_swim_id
 from page_count import scrape_num_pages
 
-_meet_headers_of_interest = ( "Member", "Event", "DoB", "Time" )
+_meet_headers_of_interest = ( "Member", "Event", "Time" )
+
+def _queue_update_swims_for_swimmer( asa_number_str ):
+  logging.info( "Queueing update of swims for " + asa_number_str )
+  num_events = len( short_course_events )
+  for event_code in range( 0, num_events ):
+    taskqueue.add(url='/admin/update_swims', params={'asa_number': asa_number_str, 'course': 's', 'event': str(event_code) })
+  num_events = len( long_course_events )
+  for event_code in range( 0, num_events ):
+    taskqueue.add(url='/admin/update_swims', params={'asa_number': asa_number_str, 'course': 'l', 'event': str(event_code) })
 
 def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
   logging.info( "Attempting to parse meet " + meet_name + ", meet code: " + str( asa_meet_code ) + ", page: " + str(page_number) )
@@ -82,7 +92,7 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
       logging.info( "Queing update of page " + str(i) + " of " + meet_name )
       taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code, 'page' : str(i) })
 
-  swimmers_checked = set()
+  asa_number_to_swimmer = {}
   update_swimmer_list = False
   for row in TableRows( table, _meet_headers_of_interest ):
     # First we look at the swimmer.
@@ -90,9 +100,9 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
     # If it's a new one, is it a swimmer that's in our database?
     # Perhaps it's a swimmer that's in our database as Cat 1 and needs upgrading.
     asa_number = int( row[0].text )
-    if asa_number not in swimmers_checked:
-      swimmers_checked.add( asa_number )
+    if asa_number not in asa_number_to_swimmer:
       swimmer = Swimmer.get( "Winsford", asa_number )
+      asa_number_to_swimmer[ asa_number ] = swimmer
       if swimmer is None:
         swimmer = SwimmerCat1.get( "Winsford", asa_number )
         if swimmer is None:
@@ -100,7 +110,7 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
           # Add a task to add them
           logging.info( "Found new Winsford swimmer: " + str( asa_number ) + ". Adding task to scrape." )
           taskqueue.add(url='/admin/update_swimmers', params={'name_search': str(asa_number)})
-          #QueueUpdateSwimsForSwimmer( str(asa_number) )
+          _queue_update_swims_for_swimmer( str(asa_number) )
           update_swimmer_list = True
         else:
           # This is a swimmer that's in our database as Cat1
@@ -120,25 +130,27 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
     # If there's a swim link, then that means there are some splits. In those
     # cases we also add a task to parse the splits and add them to the Swim.
     asa_number = int( row[0].text )
-    event_str = row[1].text
-    date_of_birth = helpers.ParseDate_dmy( row[2].text )
-    race_time = float( RaceTime( row[3].text ) )
-    event = Event.create_from_str( event_str, course_code )
-    asa_swim_id = get_asa_swim_id( row[3] )
-      
-    swim = Swim.create( asa_number, date_of_birth, event, date, meet_name, race_time, asa_swim_id )
+    swimmer = asa_number_to_swimmer[ asa_number ]
+    if swimmer is not None:
+      event_str = row[1].text
+      date_of_birth = swimmer.date_of_birth
+      race_time = float( RaceTime( row[2].text ) )
+      event = Event.create_from_str( event_str, course_code )
+      asa_swim_id = get_asa_swim_id( row[2] )
+        
+      swim = Swim.create( asa_number, date_of_birth, event, date, meet_name, race_time, asa_swim_id )
 
-    if asa_swim_id is not None:
-      # Swim link. Add a task to parse the splits.
-      swim_key_str = swim.create_swim_key_str()
-      logging.info( "Adding split scraping task for swim " + swim_key_str )
-      taskqueue.add(url='/admin/scrape_splits', params={'swim': swim_key_str})
+      if asa_swim_id is not None:
+        # Swim link. Add a task to parse the splits.
+        swim_key_str = swim.create_swim_key_str()
+        logging.info( "Adding split scraping task for swim " + swim_key_str )
+        taskqueue.add(url='/admin/scrape_splits', params={'swim': swim_key_str})
 
-    # Record this swim
-    if asa_number not in swims_for_swimmer:
-      swims_for_swimmer[ asa_number ] = [];
-      
-    swims_for_swimmer[ asa_number ].append( swim )
+      # Record this swim
+      if asa_number not in swims_for_swimmer:
+        swims_for_swimmer[ asa_number ] = [];
+        
+      swims_for_swimmer[ asa_number ].append( swim )
     
   for asa_number, swims in swims_for_swimmer.iteritems():
     num_swims = len( swims )
