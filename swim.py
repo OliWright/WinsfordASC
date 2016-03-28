@@ -65,7 +65,52 @@ class Split():
 
   def __str__(self):
     return str( self.distance ) + "m : " + str( RaceTime( self.time  ) )
+
+# Unpack an encoded swim string into attributes on an object
+# Returns the version number
+def unpack_swim_string( swim_str, object, is_swim_list = False ):
+  #logging.info( self.data )
+  tokens = swim_str.split( "|" )
+  num_tokens = len( tokens )
+  
+  # Figure out what version data we have
+  version = 0
+  if tokens[0].startswith( "V" ):
+    version = int( tokens[0][1:] )
     
+  if version == 0:
+    # Old version swim data, missing the version number
+    object.asa_number = int( tokens[0] )
+    object.event = Event( int( tokens[1] ) )
+    object.date = helpers.ParseDate_dmY( tokens[2] )
+    object.meet = tokens[3]
+    object.asa_swim_id = -1
+    if len( tokens[4] ) > 0:
+      object.asa_swim_id = int( tokens[4] )
+    # Ignore any splits data in version 0 because it's most likely nonsense
+    object.splits_str = ""
+  else:
+    # Version 1 or higher data.
+    # Token 0 is the version number.
+    object.asa_number = int( tokens[1] )
+    object.event = Event( int( tokens[2] ) )
+    object.date = helpers.ParseDate_dmY( tokens[3] )
+    object.meet = tokens[4]
+    object.asa_swim_id = int( tokens[5] )
+    # Read the splits
+    if tokens[6] == "-":
+      # There are no splits available from the ASA for this swim
+      object.splits = []
+      object.splits_str = ""
+    else:
+      object.splits_str = tokens[6]
+    if is_swim_list:
+      # Strings from swim lists have two extra tokens for licence and race time
+      object.licence = tokens[7]
+      object.race_time = float( tokens[8] )
+  
+  return version
+
 # Encapsulates all data for an individual's performance in a single race, including split
 # times when available.
 class Swim(ndb.Model):
@@ -185,48 +230,14 @@ class Swim(ndb.Model):
   # as member variables.
   # Makes heavy use of string tokenising using split.
   def unpack_data(self):
-    #logging.info( self.data )
-    tokens = self.data.split( "|" )
-    num_tokens = len( tokens )
-    
-    # Figure out what version data we have
-    version = 0
-    if tokens[0].startswith( "V" ):
-      version = int( tokens[0][1:] )
-      
-    if version == 0:
-      # Old version swim data, missing the version number
-      self.asa_number = int( tokens[0] )
-      self.event = Event( int( tokens[1] ) )
-      self.date = helpers.ParseDate_dmY( tokens[2] )
-      self.meet = tokens[3]
-      self.asa_swim_id = -1
-      if len( tokens[4] ) > 0:
-        self.asa_swim_id = int( tokens[4] )
-      # Ignore any splits data in version 0 because it's most likely nonsense
-      self.splits_str = ""
-    else:
-      # Version 1 or higher data.
-      # Token 0 is the version number.
-      self.asa_number = int( tokens[1] )
-      self.event = Event( int( tokens[2] ) )
-      self.date = helpers.ParseDate_dmY( tokens[3] )
-      self.meet = tokens[4]
-      self.asa_swim_id = int( tokens[5] )
-      # Read the splits
-      if tokens[6] == "-":
-        # There are no splits available from the ASA for this swim
-        self.splits = []
-        self.splits_str = ""
-      else:
-        split_times_from_asa = []
-        splits = tokens[6].split( "," )
-        self.splits_str = tokens[6]
-        if len(splits) > 1:
-          #logging.info( "T:" + tokens[6] + "N: " + str( len(splits) ) )
-          for split in splits:
-            split_times_from_asa.append( float( split ) )
-          self.fix_splits( split_times_from_asa )
+    version = unpack_swim_string( self.data, self )
+    if len(self.splits_str) > 0:
+      split_times_from_asa = []
+      splits = self.splits_str.split( "," )
+      if len(splits) > 1:
+        for split in splits:
+          split_times_from_asa.append( float( split ) )
+        self.fix_splits( split_times_from_asa )
     
     if version != 1:
       # Update database with latest version data

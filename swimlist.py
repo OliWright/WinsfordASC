@@ -35,9 +35,11 @@ appengine.monkeypatch()
 import gspread
 import httplib2
 from google.appengine.api import memcache
+from google.appengine.api import taskqueue
 
 from google.appengine.ext import ndb
 from swim import Swim
+from swim import unpack_swim_string
 from unofficialswim import UnofficialSwim
 
 from event import Event
@@ -69,6 +71,12 @@ def _get_spreadsheet():
     logging.info( 'Failed to open google sheet. SpreadsheetNotFound.' )
   except:
     logging.info( 'Failed to open google sheet. Unhandled exception.' )
+    
+# Simple object to hold the data contained in a single row of the SwimData
+# without using a full-fat Swim.
+class SimpleSwim():
+  def __init__( self, str ):
+    unpack_swim_string( str, self, is_swim_list=True )
 
 class SwimList(ndb.Model):
   """Models all the swims for an individual swimmer."""
@@ -79,31 +87,7 @@ class SwimList(ndb.Model):
   def create(cls, asa_number):
     swimlist = cls( id = asa_number, swims = "" )
     swimlist.asa_number = asa_number
-    
-    # Create the google sheet worksheet for this swimmer
-    sheet = _get_spreadsheet()
-    if sheet is not None:
-      asa_number_str = str( asa_number )
-      try:
-        # If there's an existing worksheet for this swimmer, then delete it
-        ws = sheet.worksheet( asa_number_str )
-        sheet.del_worksheet( ws )
-      except gspread.WorksheetNotFound:
-        # No existing worksheet
-        pass
-      logging.info( 'Creating worksheet for ' + asa_number_str )
-      ws = sheet.add_worksheet( asa_number_str, 1, _NUM_WORKSHEET_COLUMNS )
-      
-      values = [ None ] * _NUM_WORKSHEET_COLUMNS
-      values[0] = "Date"
-      values[1] = "Event"
-      values[2] = "Meet"
-      values[3] = "License"
-      values[4] = "Time"
-      values[5] = "Splits"
-      values[6] = "Id"
-      ws.update_row( values, 1 )
-    
+
     licensed_swims = []
     unlicensed_swims = []
     for event in short_course_events:
@@ -112,8 +96,8 @@ class SwimList(ndb.Model):
     for event in long_course_events:
       licensed_swims.extend( Swim.fetch_all( asa_number, event ) )
       unlicensed_swims.extend( UnofficialSwim.fetch_all( asa_number, event ) )
-    swimlist.append_swims( licensed_swims, licensed=True, check_if_already_exist=False, sheet=sheet )
-    swimlist.append_swims( unlicensed_swims, licensed=False, check_if_already_exist=False, sheet=sheet )
+    swimlist.append_swims( licensed_swims, licensed=True, check_if_already_exist=False )
+    swimlist.append_swims( unlicensed_swims, licensed=False, check_if_already_exist=False )
     return swimlist
   
   # Retrieve a SwimList by ASA id
@@ -125,7 +109,7 @@ class SwimList(ndb.Model):
     return swimlist
   
   # Append multiple swims to a swimlist
-  def append_swims(self, swims, licensed=True, check_if_already_exist=False, sheet=None):
+  def append_swims(self, swims, licensed=True, check_if_already_exist=False):
     #logging.info( 'Appending ' + str( len( swims ) ) + ' swims' )
     if check_if_already_exist:
       # Iterate over the lines in self.swims, generating a hash
@@ -181,49 +165,13 @@ class SwimList(ndb.Model):
         #else:
           #logging.info( 'Skipping ' + str(swim.event.event_code) + ', ' + str( swim.date ) + ': ' + str( hash ) )
           
-      self.append_swims( added_swims, licensed = licensed, check_if_already_exist = False, sheet = sheet )
+      self.append_swims( added_swims, licensed = licensed, check_if_already_exist = False )
       return added_swims
     else:
       num_swims = len( swims )
       if num_swims > 0:
         for swim in swims:
           self._append_swim( swim, licensed )
-        # Append the swims to the google sheet worksheet for this swimmer
-        if sheet is None:
-          sheet = _get_spreadsheet()
-        if sheet is not None:
-          # Open the worksheet
-          asa_number_str = str( self.asa_number )
-          ws = None
-          try:
-            ws = sheet.worksheet( asa_number_str )
-          except gspread.WorksheetNotFound:
-            logging.error( 'Missing worksheet for ' + asa_number_str )
-
-          if ws is not None:
-            # Add new data for the swims
-            start_row = ws.row_count
-            rows = []
-            for i in range(0, num_swims):
-              values = [ None ] * _NUM_WORKSHEET_COLUMNS
-              swim = swims[i];
-              values[0] = swim.date
-              values[1] = swim.event.short_name()
-              values[2] = swim.meet
-              if licensed:
-                values[3] = 'y'
-              else:
-                values[3] = 'n'
-              values[4] = swim.race_time
-              values[5] = swim.splits_str
-              if swim.asa_swim_id != -1:
-                values[6] = swim.asa_swim_id
-              else:
-                values[6] = ""
-              rows.append( values )
-            #logging.info( "Adding rows" )
-            ws.append_rows( rows )
-            #logging.info( "Finished adding rows" )
       return swims
       
   # Append an individual swim to a SwimList
@@ -241,3 +189,94 @@ class SwimList(ndb.Model):
   # Output the whole swims field
   def __str__(self):
     return self.swims
+    
+  def _parse_data( self ):
+    full_length = len( self.swims )
+    #logging.info( "Parsing swims ")
+    simple_swims = []
+    if full_length > 0:
+      prevln = -1
+      while True:
+        line_start = prevln + 1
+        nextnl = self.swims.find('\n', line_start)
+        line_end = nextnl
+        if line_end < 0:
+          line_end = full_length
+        #logging.info( self.swims[line_start:line_end] )
+        simple_swims.append( SimpleSwim( self.swims[line_start:line_end] ) )
+
+        if nextnl < 0: break
+        prevln = nextnl  
+        
+    return simple_swims
+    
+  def update_google_sheet( self ):
+    sheet = _get_spreadsheet()
+    if sheet is None:
+      logging.error( "Failed to access spreasheet" )
+      return 503
+    else:
+      # Parse the swim text into an array of SimpleSwims
+      simple_swims = self._parse_data()
+      num_simple_swims = len( simple_swims )
+      # Open or create the google sheet worksheet for this swimmer
+      asa_number_str = str( self.asa_number )
+      do_spreadsheet_update = False
+      try:
+        # If there's an existing worksheet for this swimmer, then delete it
+        ws = sheet.worksheet( asa_number_str )
+        # See how many rows the spreadsheet has.
+        if ws.row_count != (num_simple_swims+1):
+          # It's incomplete.
+          # We could mess around trying to add what's missing, or we could just
+          # re-do the whole thing.
+          # Let's just re-do the whole thing, then we'll be sure to get any
+          # splits that might have been missed along the way..
+          logging.info( "Deleting worksheet for " + asa_number_str + " (has " + str( ws.row_count) + " rows, needs " + str(num_simple_swims+1) + ")" )
+          do_spreadsheet_update = True
+          sheet.del_worksheet( ws )
+      except gspread.WorksheetNotFound:
+        # No existing worksheet
+        do_spreadsheet_update = True
+        pass
+        
+      if do_spreadsheet_update:
+        logging.info( 'Creating worksheet for ' + asa_number_str )
+        try:
+          ws = sheet.add_worksheet( asa_number_str, 1, _NUM_WORKSHEET_COLUMNS )
+          values = [ None ] * _NUM_WORKSHEET_COLUMNS
+          values[0] = "Date"
+          values[1] = "Event"
+          values[2] = "Meet"
+          values[3] = "License"
+          values[4] = "Time"
+          values[5] = "Splits"
+          values[6] = "Id"
+          ws.update_row( values, 1 )
+        
+          # Append the swims to the google sheet worksheet for this swimmer
+          rows = []
+          for swim in simple_swims:
+            values = [ None ] * _NUM_WORKSHEET_COLUMNS
+            values[0] = swim.date
+            values[1] = swim.event.short_name()
+            values[2] = swim.meet
+            values[3] = swim.licence
+            values[4] = swim.race_time
+            values[5] = swim.splits_str
+            if swim.asa_swim_id != -1:
+              values[6] = swim.asa_swim_id
+            else:
+              values[6] = ""
+            rows.append( values )
+          ws.append_rows( rows )
+          logging.info( "Success creating worksheet for " + asa_number_str )
+        except gspread.GSpreadException:
+          logging.error( "Exception creating worksheet for " + asa_number_str )
+          return 503
+      else:
+        logging.info( "Skipping update of worksheet for " + asa_number_str + " because already up-to-date" )
+    
+  def queue_update_google_sheet( self ):
+    taskqueue.add(url='/admin/update_google_sheet', params={'asa_number': str( self.asa_number ) })
+    

@@ -192,6 +192,21 @@ class UpdateSwimLists(webapp2.RequestHandler):
       self.response.out.write( "Queueing update of swim list for " + swimmer.full_name() + "\n" )
       taskqueue.add(url='/admin/update_swim_lists', params={'asa_number': str( swimmer.asa_number ) })
     
+
+class UpdateGoogleSheet(webapp2.RequestHandler):
+  def post(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+
+    asa_numbers = self.request.get_all('asa_number')
+    for asa_number in asa_numbers:
+      logging.info( "Updating google sheet for " + asa_number )
+      swimlist = SwimList.get( int( asa_number ) )
+      ret = swimlist.update_google_sheet()
+      if ret is not None:
+        # Error
+        self.response.set_status( ret )
+        return
+    
 # Scrapes swimmingresults.org for PB swims for a particular swimmer in ALL events
 class UpdatePersonalBests(webapp2.RequestHandler):
   def post(self):
@@ -526,6 +541,7 @@ app = webapp2.WSGIApplication([
   ('/admin/post_meet_results', PostMeetResults),
   ('/admin/update_club_records', UpdateClubRecords),
   ('/admin/update_swim_lists', UpdateSwimLists),
+  ('/admin/update_google_sheet', UpdateGoogleSheet),
   ('/admin/queue_update_new_meets', UpdateNewMeets),
   ('/admin/scrape_meet', ScrapeMeet),
   ('/admin/rescrape_meet', ReScrapeMeet),

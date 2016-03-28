@@ -77,12 +77,15 @@ def put_new_swims( asa_number, swims ):
     # the ones we've just added.
     swim_list = SwimList.create( asa_number )
     swim_list.put()
+    swim_list.queue_update_google_sheet()
   else:
     # There was a pre-existing SwimList for this Swimmer.
     # Append the new Swims.
     new_swims = swim_list.append_swims( swims, licensed=True, check_if_already_exist=True )
     swim_list.put()
-    ndb.put_multi( new_swims )
+    if len( new_swims ) > 0:
+      swim_list.queue_update_google_sheet()
+      ndb.put_multi( new_swims )
   
 def scrape_swims( swimmer, event, output ):
   # Parses this kind of page
