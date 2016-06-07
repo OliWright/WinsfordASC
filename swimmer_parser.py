@@ -141,7 +141,7 @@ def scrape_swimmer( club, asa_number, response, first_name=None, last_name=None,
       logging.info( "Updated " + extra_swimmer_data.cat + " " + extra_swimmer_data.gender + " swimmer " + swimmer.full_name() + ". ASA Number: " + str(asa_number) + "\n" )
       response.out.write( "Updated " + extra_swimmer_data.cat + " " + extra_swimmer_data.gender + " swimmer " + swimmer.full_name() + ". ASA Number: " + str(asa_number) + "\n" )
 
-def check_swimmer_upgrade( club, asa_number, response ):
+def check_swimmer_upgrade( club, asa_number, response, date_of_birth = None ):
   url = "https://www.swimmingresults.org/membershipcheck/member_details.php?myiref=" + str(asa_number)
   logging.info( "Attempting to scrape " + url );
   page = helpers.FetchUrl( url )
@@ -159,6 +159,8 @@ def check_swimmer_upgrade( club, asa_number, response ):
         logging.info( "Deleting Cat1 entry for " + swimmer.full_name() + " " + str( asa_number ) )
         swimmer.key.delete()
     else:
+      if date_of_birth is not None:
+        extra_swimmer_data.date_of_birth = date_of_birth
       first_name = extra_swimmer_data.first_name
       last_name = extra_swimmer_data.last_name
       nick_name = extra_swimmer_data.nick_name
@@ -180,7 +182,7 @@ def check_swimmer_upgrade( club, asa_number, response ):
         logging.info( "Upgraded " + first_name + " " + last_name + " to Cat2 in database" )
         # Queue a scrape of the swims for this swimmer
         taskqueue.add(url='/admin/update_swims', params={'asa_number': str(asa_number)})
-
+        return swimmer
       else:
         # Still Cat1
         response.out.write( "Not upgraded " + first_name + " " + last_name + " because still Cat1" )

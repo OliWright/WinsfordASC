@@ -98,6 +98,15 @@ function updateSwimLists()
 	doAdminPost( "/admin/update_swim_lists", "name_search=" + searchInputElement.value );
 }
 
+function setDateOfBirth()
+{
+	var asaNumber = document.getElementById( "date_of_birth_swimmer" ).value;
+	var dateOfBirth = document.getElementById( "date_of_birth" ).valueAsDate;
+	dateOfBirthStr = dateOfBirth.getDate().toString() + "/" + (dateOfBirth.getMonth() + 1) + "/" + dateOfBirth.getFullYear();
+	//console.log( dateOfBirthStr );
+	doAdminPost( "/admin/set_date_of_birth", "asa_number=" + asaNumber + "&date_of_birth=" + dateOfBirthStr );
+}
+
 function nukeSwimmer()
 {
 	var nukeInputElement = document.getElementById( "nuke_swimmer_input" );

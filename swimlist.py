@@ -77,6 +77,16 @@ def _get_spreadsheet():
 class SimpleSwim():
   def __init__( self, str ):
     unpack_swim_string( str, self, is_swim_list=True )
+    
+def _get_swim_str(swim, licensed=True):
+  swim_str = swim.data
+  if licensed:
+    swim_str += '|y|'
+  else:
+    swim_str += '|n|'
+  swim_str += str( swim.race_time )
+  return swim_str
+
 
 class SwimList(ndb.Model):
   """Models all the swims for an individual swimmer."""
@@ -176,15 +186,9 @@ class SwimList(ndb.Model):
       
   # Append an individual swim to a SwimList
   def _append_swim(self, swim, licensed=True):
-    swim_str = swim.data
-    if licensed:
-      swim_str += '|y|'
-    else:
-      swim_str += '|n|'
-    swim_str += str( swim.race_time )
     if len( self.swims ) > 0:
       self.swims += '\n'
-    self.swims += swim_str
+    self.swims += _get_swim_str(swim, licensed)
 
   # Output the whole swims field
   def __str__(self):
@@ -210,7 +214,7 @@ class SwimList(ndb.Model):
         
     return simple_swims
     
-  def update_google_sheet( self ):
+  def update_google_sheet( self, force_update=False ):
     sheet = _get_spreadsheet()
     if sheet is None:
       logging.error( "Failed to access spreasheet" )
@@ -226,7 +230,7 @@ class SwimList(ndb.Model):
         # If there's an existing worksheet for this swimmer, then delete it
         ws = sheet.worksheet( asa_number_str )
         # See how many rows the spreadsheet has.
-        if ws.row_count != (num_simple_swims+1):
+        if force_update or (ws.row_count != (num_simple_swims+1)):
           # It's incomplete.
           # We could mess around trying to add what's missing, or we could just
           # re-do the whole thing.
@@ -277,6 +281,59 @@ class SwimList(ndb.Model):
       else:
         logging.info( "Skipping update of worksheet for " + asa_number_str + " because already up-to-date" )
     
-  def queue_update_google_sheet( self ):
-    taskqueue.add(url='/admin/update_google_sheet', params={'asa_number': str( self.asa_number ) })
+  def queue_update_google_sheet( self, force_update = False ):
+    taskqueue.add(url='/admin/update_google_sheet', params={'asa_number': str( self.asa_number ), 'force': str(force_update) })
+    
+  # Replace an individual swim (usually because we now have splits)
+  def update_swim(self, swim, licensed=True):
+    # Iterate over the lines in self.swims, looking for one
+    # matching this swim id.
+    # Swims that copy across swims that don' match
+    if swim.asa_swim_id == -1:
+      logging.error('Not exepected to update a swim with no asa_swim_id')
+      return
+    
+    prevnl = -1
+    full_length = len( self.swims )
+    if full_length > 0:
+      while True:
+        nextnl = self.swims.find('\n', prevnl + 1)
+        line_end = nextnl
+        if line_end < 0:
+          line_end = full_length
+      
+        # Skip the version
+        bar = self.swims.find('|', prevnl + 1)
+        # Skip the asa_number
+        bar = self.swims.find('|', bar + 1)
+        # Skip the event_code
+        bar = self.swims.find('|', bar + 1)
+        # Skip the date
+        bar = self.swims.find('|', bar + 1)
+        # Skip the meet
+        bar = self.swims.find('|', bar + 1)
+        # Read the swim id
+        nextbar = self.swims.find('|', bar + 1)
+        asa_swim_id_str = self.swims[bar + 1:nextbar]
+
+        if asa_swim_id_str:
+          asa_swim_id = int(asa_swim_id_str)
+          if asa_swim_id == swim.asa_swim_id:
+            # This is the one.
+            # Copy the swim list string up to this swim
+            new_swims = self.swims[0:prevnl + 1]
+            # Append the updated swim
+            new_swims += _get_swim_str( swim, licensed )
+            if nextnl >= 0:
+              # Append the rest of the swims
+              new_swims += self.swims[nextnl:full_length]
+            self.swims = new_swims
+            self.put()
+            logging.info('Successfully updated swim list entry for swim ' + str(swim.asa_swim_id))
+            self.queue_update_google_sheet( True )
+            return
+    
+        if nextnl < 0: break
+        prevnl = nextnl  
+    logging.error('Failed to find swim id ' + str(swim.asa_swim_id))
     

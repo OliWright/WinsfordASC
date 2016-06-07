@@ -189,6 +189,7 @@ def scrape_splits( swim ):
     return
   asa_swim_id = swim.get_asa_swim_id()
   if asa_swim_id is None:
+    logging.error( "Missing swim id" )
     return
   url = "http://www.swimmingresults.org/splits/?swimid=" + str(asa_swim_id)
   page = helpers.FetchUrl( url )
@@ -223,3 +224,7 @@ def scrape_splits( swim ):
   # Save this swim with its splits back to the database
   swim.repack_data()
   swim.put()
+  
+  swim_list = SwimList.get( swim.asa_number )
+  if swim_list is not None:
+    swim_list.update_swim( swim, True ) # Must be licenced if it's on the ASA site

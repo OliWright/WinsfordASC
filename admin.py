@@ -185,6 +185,7 @@ class UpdateSwimLists(webapp2.RequestHandler):
       self.response.out.write( "Updating swim list for " + asa_number + "\n" )
       swimlist = SwimList.create( int( asa_number ) )
       swimlist.put()
+      swimlist.queue_update_google_sheet( True )
 
     # Queue name searched updates
     swimmers = GetNameMatchedSwimmers( self.request.get('name_search') )
@@ -197,11 +198,12 @@ class UpdateGoogleSheet(webapp2.RequestHandler):
   def post(self):
     self.response.headers['Content-Type'] = 'text/plain'
 
+    force_update = self.request.get('force') == 'True'
     asa_numbers = self.request.get_all('asa_number')
     for asa_number in asa_numbers:
       logging.info( "Updating google sheet for " + asa_number )
       swimlist = SwimList.get( int( asa_number ) )
-      ret = swimlist.update_google_sheet()
+      ret = swimlist.update_google_sheet(force_update)
       if ret is not None:
         # Error
         self.response.set_status( ret )
@@ -522,7 +524,39 @@ class NukeSwimmer(webapp2.RequestHandler):
     delete_model( SwimmerCat1.get( "Winsford", asa_number ) )
       
     ndb.delete_multi( keys_to_delete )
+
+class SetDateOfBirth(webapp2.RequestHandler):
+  def post(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    asa_number_str = self.request.get('asa_number')
+    if (asa_number_str is None) or (len( asa_number_str ) == 0):
+      logging.error( "Missing asa_number in swimmer date of birth setting." )
+      self.response.set_status( 400 )
+      return
+    asa_number = int( asa_number_str )
     
+    dob_str = self.request.get('date_of_birth')
+    if (dob_str is None) or (len( dob_str ) == 0):
+      logging.error( "Missing date_of_birth in swimmer date of birth setting." )
+      self.response.set_status( 400 )
+      return
+    date_of_birth = helpers.ParseDate_dmY( dob_str )
+
+    swimmer = Swimmer.get( "Winsford", asa_number )
+    if swimmer is not None:
+      swimmer.date_of_birth = date_of_birth
+      swimmer.put()
+    else:
+      # No existing Cat2 swimmer. Check for an upgrade of Cat1
+      swimmer = check_swimmer_upgrade( "Winsford", asa_number, self.response, date_of_birth )
+
+    taskqueue.add(url='/admin/update_swimmer_list')
+
+    if swimmer is not None:
+      self.response.out.write( "Updated date of birth for " + swimmer.full_name() + " to " + date_of_birth.strftime("%d/%m/%Y"))
+    else:
+      self.response.out.write( "Failed to update date of birth for " + swimmer.full_name() + " to " + date_of_birth.strftime("%d/%m/%Y"))
+
 class Test(webapp2.RequestHandler):
   def post(self):
     pass
@@ -547,6 +581,7 @@ app = webapp2.WSGIApplication([
   ('/admin/rescrape_meet', ReScrapeMeet),
   ('/admin/scrape_splits', ScrapeSplits),
   ('/admin/nuke_swimmer', NukeSwimmer),
+  ('/admin/set_date_of_birth', SetDateOfBirth),
   ('/admin/test', Test),
 ])
 

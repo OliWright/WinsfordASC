@@ -55,3 +55,6 @@ class SwimmerCat1(ndb.Model):
     
   def full_name(self):
     return self.first_name + " " + self.last_name
+
+  def __str__(self):
+    return str(self.asa_number) + "|" + self.last_name + "|" + self.first_name

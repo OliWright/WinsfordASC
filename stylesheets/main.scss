@@ -169,7 +169,7 @@ table
 
 	// Put a nice rounded border around the table.
 	border-radius: $radius;
-	box-shadow: 0px 0px $panel_shadow $panel_shadow_colour;
+	// box-shadow: 0px 0px $panel_shadow $panel_shadow_colour;
 	// Prevent the cell borders at the edge of the table from drawing.
 	td:first-child { border-left: none; }
 	td:last-child { border-right: none; }

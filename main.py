@@ -83,12 +83,17 @@ class PersonalBests(RequestHandler):
 
       listEvents( short_course_events )
       listEvents( long_course_events )
-        
+
 class GetSwimmerList(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
     self.response.out.write( StaticData.get_swimmer_list() )
-        
+
+class GetCat1List(RequestHandler):
+  def get(self):
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write( StaticData.get_cat1_list() )
+
 class GetClubRecords(RequestHandler):
   def get(self):
     self.response.headers['Content-Type'] = 'text/plain'
@@ -151,6 +156,7 @@ class GetSwimHistory(RequestHandler):
 app = webapp2.WSGIApplication([
   ('/personal_bests', PersonalBests),
   ('/swimmer_list', GetSwimmerList),
+  ('/cat1_list', GetCat1List),
   ('/swim_details', GetSwimDetails),
   ('/swim_history', GetSwimHistory),
   ('/club_records', GetClubRecords),

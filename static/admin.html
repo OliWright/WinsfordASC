@@ -84,6 +84,13 @@
 		<button onclick='doAdminPost( "/admin/queue_check_for_all_swimmer_upgrades", "" )'()>Queue Cat1 to Cat2 upgrade check for all Cat1 swimmers.</button>
 	</article>
 	<article>
+		<h2>Set Date-of-Birth</h2>
+		<p>Enter an ASA swimmer number and a date-of-birth to 'activate' that swimmer.</p>
+		<input id="date_of_birth_swimmer" value=""/>
+		<input type="date" id="date_of_birth" value=""/>
+		<button onclick=setDateOfBirth()>Set</button>
+	</article>
+	<article>
 		<h2>Nuke Swimmer</h2>
 		<p>Enter an ASA swimmer number to completely nuke that swimmer from the database.</p>
 		<input id="nuke_swimmer_input" value=""/>

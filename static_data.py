@@ -22,14 +22,17 @@
 import logging
 from google.appengine.ext import ndb
 from swimmer import Swimmer
+from swimmer_cat1 import SwimmerCat1
 
 swimmer_list_key = ndb.Key( "StaticData", 1 )
 credentials_key = ndb.Key( "StaticData", 2 )
 club_records_key = ndb.Key( "StaticData", 3 )
+cat1_list_key = ndb.Key( "StaticData", 4 )
 
 class StaticData(ndb.Model):
   data = ndb.TextProperty( "Data", indexed=False, required=True )
 
+  # Query the Swimmer model and update the single entry containing the entire swimmer list
   @classmethod
   def get_swimmer_list( cls ):
     swimmer_list = swimmer_list_key.get()
@@ -38,15 +41,33 @@ class StaticData(ndb.Model):
       swimmer_list.put()
     return swimmer_list.data
 
+  # Query the Swimmer model and update the single entry containing the entire cat1 swimmer list
+  @classmethod
+  def get_cat1_list( cls ):
+    cat1_list = cat1_list_key.get()
+    if cat1_list is None:
+      cat1_list = cls( key = cat1_list_key, data = "" )
+      cat1_list.put()
+    return cat1_list.data
+
   # Query the Swimmer model and update the single entry containing the entire swimmer list
   @classmethod
   def update_swimmer_list( cls ):
+    # Update the main swimmers list
     swimmers = Swimmer.query_club( "Winsford" );
     txt = ""
     for swimmer in swimmers:
       txt += str( swimmer ) + "\n"
     swimmer_list = cls( key = swimmer_list_key, data = txt )
     swimmer_list.put()
+
+    # Update the cat1 list
+    swimmers = SwimmerCat1.query_club( "Winsford" );
+    txt = ""
+    for swimmer in swimmers:
+      txt += str( swimmer ) + "\n"
+    cat1_list = cls( key = cat1_list_key, data = txt )
+    cat1_list.put()
     
   @classmethod
   def get_optional( cls, key ):
