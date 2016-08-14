@@ -66,8 +66,16 @@ def _create_swim( swimmer, event, row, output ):
   swim = Swim.create( swimmer.asa_number, swimmer.date_of_birth, event, date, meet, float( swim_time ), asa_swim_id );
   return swim
 
+def _queue_scrape_splits( swims )  :
+  for swim in swims:
+    if swim.get_asa_swim_id() is not None:
+      # Swim link. Add a task to parse the splits.
+      swim_key_str = swim.create_swim_key_str()
+      logging.info( "Adding split scraping task for swim " + swim_key_str )
+      taskqueue.add(url='/admin/scrape_splits', params={'swim': swim_key_str})
+
 # Add multiple new swims to the database
-def put_new_swims( asa_number, swims ):
+def put_new_swims( asa_number, swims, update_splits=False ):
   #logging.info( 'Putting ' + str( len( swims ) ) + ' swims' )
   swim_list = SwimList.get( asa_number )
   if swim_list is None:
@@ -77,15 +85,23 @@ def put_new_swims( asa_number, swims ):
     # the ones we've just added.
     swim_list = SwimList.create( asa_number )
     swim_list.put()
+    if update_splits:
+      _queue_scrape_splits( new_swims )
     swim_list.queue_update_google_sheet()
+    return swims
   else:
     # There was a pre-existing SwimList for this Swimmer.
     # Append the new Swims.
     new_swims = swim_list.append_swims( swims, licensed=True, check_if_already_exist=True )
     swim_list.put()
     if len( new_swims ) > 0:
+      if update_splits:
+        _queue_scrape_splits( new_swims )
       swim_list.queue_update_google_sheet()
       ndb.put_multi( new_swims )
+    else:
+      logging.info( "No new swims" )
+    return new_swims
   
 def scrape_swims( swimmer, event, output ):
   # Parses this kind of page
@@ -116,9 +132,29 @@ def scrape_swims( swimmer, event, output ):
     logging.info( "No table for " + swimmer.full_name() + " in " + event.to_string() )
     return
     
+  # Build a list of swims
   swims = []
+  # and a map of id to swim so we can handle the case when we have to swims
+  # of the same event on the same day (so the same key id)
+  swim_id_to_swim = {}
+  
   for row in TableRows( table, swims_headers_of_interest ):
-    swims.append( _create_swim( swimmer, event, row, output ) )
+    swim = _create_swim( swimmer, event, row, output )
+    id = swim.key.id()
+    if id in swim_id_to_swim:
+      logging.info( "Duplicate swim for " + swimmer.full_name() + " in " + event.to_string() + " at "  + swim.meet)
+      existing_swim = swim_id_to_swim[id]
+      if swim.race_time < existing_swim.race_time:
+        # Need to replace the existing swim
+        swim_id_to_swim[id] = swim
+        num_swims = len(swims)
+        for i in range(num_swims):
+          if swims[i].key.id() == id:
+            swims[i] = swim
+            break
+    else:
+      swim_id_to_swim[id] = swim
+      swims.append( swim )
   put_new_swims( swimmer.asa_number, swims )
     
 pbs_headers_of_interest = ( "Swim Date", "Meet", "Time", "Stroke" )

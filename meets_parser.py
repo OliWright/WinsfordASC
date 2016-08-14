@@ -110,7 +110,7 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
           # Add a task to add them
           logging.info( "Found new Winsford swimmer: " + str( asa_number ) + ". Adding task to scrape." )
           taskqueue.add(url='/admin/update_swimmers', params={'name_search': str(asa_number)})
-          _queue_update_swims_for_swimmer( str(asa_number) )
+          #_queue_update_swims_for_swimmer( str(asa_number) )
           update_swimmer_list = True
         else:
           # This is a swimmer that's in our database as Cat1
@@ -140,22 +140,34 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
         
       swim = Swim.create( asa_number, date_of_birth, event, date, meet_name, race_time, asa_swim_id )
 
-      if asa_swim_id is not None:
-        # Swim link. Add a task to parse the splits.
-        swim_key_str = swim.create_swim_key_str()
-        logging.info( "Adding split scraping task for swim " + swim_key_str )
-        taskqueue.add(url='/admin/scrape_splits', params={'swim': swim_key_str})
-
       # Record this swim
       if asa_number not in swims_for_swimmer:
         swims_for_swimmer[ asa_number ] = [];
-        
-      swims_for_swimmer[ asa_number ].append( swim )
+
+      # See if we already have a swim with the same id,
+      # which we will if there are heats and finals because the key
+      # is hashed from asa number, event and date.
+      append_swim = True
+      swim_list = swims_for_swimmer[ asa_number ]
+      num_existing_swims = len(swim_list)
+      for i in range(num_existing_swims):
+        existing_swim = swim_list[i]
+        if existing_swim.key.id() == swim.key.id():
+          # Thought so.
+          # If this new swim is a faster time, then replace it.
+          logging.info("Found duplicate swim for " + swimmer.full_name() + " " + event_str );
+          append_swim = False
+          if swim.race_time < existing_swim.race_time:
+            swim_list[i] = swim
+          break
+      if append_swim:
+        swim_list.append( swim )
     
   for asa_number, swims in swims_for_swimmer.iteritems():
     num_swims = len( swims )
-    logging.info( "Putting " + str(num_swims) + " swims for " + str( asa_number ) )
-    put_new_swims( asa_number, swims )
+    swimmer = asa_number_to_swimmer[ asa_number ]
+    logging.info( "Putting " + str(num_swims) + " swims for " + swimmer.full_name() )
+    put_new_swims( asa_number, swims, update_splits = True )
     
 _meets_headers_of_interest = ( "License", "Meet Name", "Date", "Pool" )
     
@@ -175,20 +187,26 @@ def scrape_new_meets( page = 1 ):
   except:
     logging.error( "Missing rankTable at " + url )
     return
-    
+  
+  today = datetime.date.today()
   for row in TableRows( table, _meets_headers_of_interest ):
     if row[0].link is not None:
       # Parse the link which is of the form ?targetyear=2015&masters=0&pgm=1&meetcode=16145 to extract the meetcode
       pos = row[0].link.find( "meetcode=" )
       if pos != -1:
         asa_meet_code = int( row[0].link[pos + 9:] )
-        if not has_meet_been_parsed( asa_meet_code ):
+        date_str = row[2].text
+        date = helpers.ParseDate_dmy( date_str )
+        num_days_old = (today - date).days
+        
+        # Queue a scrape_meet every day for a couple of weeks after a meet
+        # is posted, because the results often get quietly updated.
+        if (num_days_old <= 14) or not has_meet_been_parsed(asa_meet_code):
           meet_name = row[1].text
-          date_str = row[2].text
           course_code = "S"
           if row[3].text == "LC":
             course_code = "L"
-          logging.info( "Got new meet: " + meet_name + ", code: " + str( asa_meet_code ) )
+          logging.info( "Queuing scrape of new or potentially updated meet: " + meet_name + ", code: " + str( asa_meet_code ) )
           taskqueue.add(url='/admin/scrape_meet', params={'asa_meet_code': str(asa_meet_code), 'meet_name' : meet_name, 'date' : date_str, 'course_code' : course_code, 'page' : '1' })
 
     

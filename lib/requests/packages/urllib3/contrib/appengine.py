@@ -213,15 +213,19 @@ class AppEngineManager(RequestMethods):
         )
 
     def _get_absolute_timeout(self, timeout):
-        if timeout is Timeout.DEFAULT_TIMEOUT:
-            return 5  # 5s is the default timeout for URLFetch.
-        if isinstance(timeout, Timeout):
-            if timeout._read is not timeout._connect:
-                warnings.warn(
-                    "URLFetch does not support granular timeout settings, "
-                    "reverting to total timeout.", AppEnginePlatformWarning)
-            return timeout.total
-        return timeout
+        timeout_seconds = 10 # Default
+        if timeout is not Timeout.DEFAULT_TIMEOUT:
+          if isinstance(timeout, Timeout):
+              if timeout._read is not timeout._connect:
+                  warnings.warn(
+                      "URLFetch does not support granular timeout settings, "
+                      "reverting to total timeout.", AppEnginePlatformWarning)
+              timeout_seconds = timeout.total
+          else:
+            timeout_seconds = timeout
+        if timeout_seconds < 15:
+          timeout_seconds = 15
+        return timeout_seconds
 
     def _get_retries(self, retries, redirect):
         if not isinstance(retries, Retry):
