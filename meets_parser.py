@@ -116,8 +116,8 @@ def scrape_meet( asa_meet_code, page_number, meet_name, date, course_code ):
           # This is a swimmer that's in our database as Cat1
           # Add a task to upgrade them
           logging.info( "Found new Cat 2 Winsford swimmer: " + str( asa_number ) + ". Adding task to upgrade." )
-          taskqueue.add(url='/admin/check_for_swimmer_upgrade', params={'asa_number': str(asa_number)})
-          update_swimmer_list = True
+          # taskqueue.add(url='/admin/check_for_swimmer_upgrade', params={'asa_number': str(asa_number)})
+          # update_swimmer_list = True
       else:
         logging.info( "Found existing Winsford swimmer: " + swimmer.full_name() )
 
